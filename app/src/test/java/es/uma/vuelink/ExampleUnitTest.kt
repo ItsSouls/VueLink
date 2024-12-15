@@ -1,4 +1,4 @@
-package com.example.vuelink
+package es.uma.vuelink
 
 import org.junit.Test
 

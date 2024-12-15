@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.vuelink"
+    namespace = "es.uma.vuelink"
     compileSdk = 34  // Targeting Android 14.0
 
     defaultConfig {
-        applicationId = "com.example.vuelink"
+        applicationId = "es.uma.vuelink"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

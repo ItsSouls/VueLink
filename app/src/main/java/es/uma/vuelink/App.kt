@@ -1,7 +1,7 @@
-package com.example.vuelink
+package es.uma.vuelink
 
 import android.app.Application
-import com.example.vuelink.data.AppDatabase
+import es.uma.vuelink.data.AppDatabase
 
 class App : Application() {
     override fun onCreate() {

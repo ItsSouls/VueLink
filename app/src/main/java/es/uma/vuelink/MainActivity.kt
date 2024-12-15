@@ -1,4 +1,4 @@
-package com.example.vuelink
+package es.uma.vuelink
 
 import Flight
 import FlightResponse
@@ -38,9 +38,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.vuelink.data.AppDatabase
-import com.example.vuelink.data.FlightDao
-import com.example.vuelink.data.FlightEntity
+import es.uma.vuelink.data.AppDatabase
+import es.uma.vuelink.data.FlightDao
+import es.uma.vuelink.data.FlightEntity
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,4 +1,4 @@
-package com.example.vuelink.data
+package es.uma.vuelink.data
 
 import androidx.room.*
 
