@@ -1,17 +1,17 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("kapt") // Para el procesamiento de anotaciones, necesario para algunas librerías de Compose y Room
+    kotlin("kapt") // Required for annotation processing
 }
 
 android {
     namespace = "com.example.vuelink"
-    compileSdk = 34  // Utilizamos la API 34 de Android (Android 14.0)
+    compileSdk = 34  // Targeting Android 14.0
 
     defaultConfig {
         applicationId = "com.example.vuelink"
-        minSdk = 26  // Configura la mínima versión de Android soportada
-        targetSdk = 34  // Orientación a Android 14.0 (API 34)
+        minSdk = 26
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
@@ -29,42 +29,45 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17" // Esto asegura que Kotlin también se compile con Java 17
+        jvmTarget = "17"
     }
 
     buildFeatures {
-        compose = true  // Habilita Jetpack Compose
+        compose = true
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.0"  // Asegúrate de usar la versión de Kotlin y Compose compatibles
-        kotlinCompilerVersion = "1.9.21"  // La versión de Kotlin que estás utilizando
+        kotlinCompilerExtensionVersion = "1.4.7"  // Correct version for Kotlin 1.9.10 and Compose 1.6.0
     }
 }
 
 dependencies {
-    // Dependencias principales para la app
+    // App essentials
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
 
-    // Dependencias de Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.4.0")  // Dependencia de UI de Compose
-    implementation("androidx.compose.material3:material3:1.0.0")  // Material 3 para Compose
-    implementation("androidx.compose.ui:ui-tooling-preview:1.4.0")  // Herramientas de vista previa
-    implementation("androidx.activity:activity-compose:1.9.3")  // Necesaria para las Activity y Compose
+    // Jetpack Compose dependencies
+    implementation("androidx.compose.ui:ui:1.6.0")
+    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.6.0")
+    implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
-    // Para manejar solicitudes HTTP
+    implementation("androidx.compose.foundation:foundation:1.6.0") // Para LazyColumn y otros componentes
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.1")
+
+    // Networking and JSON
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
-
-    // Para la conversión de JSON a objetos Kotlin
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation(libs.androidx.monitor)
-    implementation(libs.androidx.junit.ktx)
+
+    // Room dependencies
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    androidTestImplementation(libs.junit.junit)
+    implementation(libs.androidx.cardview)
+    kapt("androidx.room:room-compiler:2.6.1")
 
-    implementation("androidx.room:room-runtime:2.5.1")
-    kapt("androidx.room:room-compiler:2.5.1")
-
+    // Testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
 }

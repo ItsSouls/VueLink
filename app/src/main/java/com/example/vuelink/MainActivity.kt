@@ -10,7 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,11 +22,15 @@ import com.example.vuelink.data.FlightEntity
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.widget.Toast
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 
-private val apiKey = "44851a0ee844dcfc3cbbee44794d01b1"
+private const val apiKey = "1ca4c88141825a87f533f8b64d9723af"
 
 class MainActivity : ComponentActivity() {
 
@@ -50,44 +55,43 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     var searchQuery by remember { mutableStateOf("") }
     var flights by remember { mutableStateOf<List<Flight>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    // Usar `LaunchedEffect` para manejar la búsqueda
-    LaunchedEffect(searchQuery) {
+    // Función que ejecuta la búsqueda
+    fun launchSearch() {
         if (searchQuery.isNotBlank()) {
             loading = true
             errorMessage = null
 
-            // Hacer la solicitud HTTP y filtrar resultados
-            try {
-                val response = fetchFlightsFromApi()
-                if (response.isSuccessful) {
-                    val flightResponse = Gson().fromJson(
-                        response.body?.string(),
-                        FlightResponse::class.java
-                    )
-                    flights = flightResponse.data.filter {
-                        it.flight.number?.contains(searchQuery, ignoreCase = true) == true ||
-                                it.airline.name?.contains(searchQuery, ignoreCase = true) == true
+            // Ejecutar la llamada a la API
+            scope.launch {
+                try {
+                    val flightResponse = withContext(Dispatchers.IO) { fetchFlightsFromApi() }
+
+                    flights = flightResponse.data.filter { flight ->
+                        val flightIata = flight.flight.iata?.contains(searchQuery, ignoreCase = true) == true
+                        val airlineName = flight.airline.name?.contains(searchQuery, ignoreCase = true) == true
+                        flightIata || airlineName
                     }
-                } else {
-                    errorMessage = "Error: ${response.code}"
+                } catch (e: Exception) {
+                    errorMessage = "Error: ${e.localizedMessage}"
+                } finally {
+                    loading = false
                 }
-            } catch (e: Exception) {
-                errorMessage = "Error: ${e.localizedMessage}"
-            } finally {
-                loading = false
             }
+        } else {
+            flights = emptyList()
         }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
             text = "Buscar vuelos",
             style = MaterialTheme.typography.headlineMedium,
@@ -104,7 +108,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 label = { Text("Número de vuelo o aerolínea") },
                 modifier = Modifier.weight(1f)
             )
-            Button(onClick = { /* No es necesario hacer nada aquí */ }) {
+            Button(onClick = { launchSearch() }) {
                 Text("Buscar")
             }
         }
@@ -119,50 +123,78 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             Text(text = it, color = androidx.compose.ui.graphics.Color.Red)
         }
 
-        flights.forEach { flight ->
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                Text(text = "Vuelo: ${flight.flight_date}")
-                Text(text = "Estado: ${flight.flight_status}")
-                Text(text = "Salida: ${flight.departure.airport}")
-                Text(text = "Llegada: ${flight.arrival.airport}")
-                Text(text = "Aerolínea: ${flight.airline.name ?: "No disponible"}")
-                Text(text = "Número de vuelo: ${flight.flight.number ?: "No disponible"}")
+        // LazyColumn con los vuelos
+        LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            items(flights) { flight ->
+                // Envolver cada item de vuelo en un Card para darle un borde y sombra
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)  // Espacio entre los elementos
+                        .padding(horizontal = 16.dp),  // Espacio a los lados
+                    shape = MaterialTheme.shapes.medium,  // Bordes redondeados
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = "Vuelo: ${flight.flight_date}")
+                            Text(text = "Estado: ${flight.flight_status}")
+                            Text(text = "Salida: ${flight.departure.airport}")
+                            Text(text = "Llegada: ${flight.arrival.airport}")
+                            Text(text = "Aerolínea: ${flight.airline.name}")
+                            Text(text = "Número de vuelo: ${flight.flight.iata ?: "No disponible"}")
+                        }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Ahora, el código del botón
-                Button(onClick = {
-                    val flightEntity = FlightEntity(
-                        flightDate = flight.flight_date,
-                        flightStatus = flight.flight_status,
-                        departureAirport = flight.departure.airport ?: "No disponible",
-                        arrivalAirport = flight.arrival.airport ?: "No disponible",
-                        airlineName = flight.airline.name,
-                        flightNumber = flight.flight.number
-                    )
-                    // Aquí invocamos la función que maneja la inserción de forma segura
-                    insertFlightToDatabase(flightEntity, flightDao)
-                }) {
-                    Text("Seleccionar")
+                        // Usar Modifier.align en el botón para centrarlo verticalmente
+                        Button(
+                            onClick = {
+                                val flightEntity = FlightEntity(
+                                    flightDate = flight.flight_date,
+                                    flightStatus = flight.flight_status,
+                                    departureAirport = flight.departure.airport,
+                                    arrivalAirport = flight.arrival.airport,
+                                    airlineName = flight.airline.name,
+                                    flightNumber = flight.flight.iata
+                                )
+                                scope.launch(Dispatchers.IO) {
+                                    flightDao.insertFlight(flightEntity)
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Vuelo guardado exitosamente", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.CenterVertically)  // Alinear el botón verticalmente
+                        ) {
+                            Text("Seleccionar")
+                        }
+                    }
                 }
             }
         }
 
+        // Spacer para separar el botón de la lista
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { navController.navigate("selected") }) {
+        // Botón de "Ver vuelos seleccionados"
+        Button(
+            onClick = { navController.navigate("selected") },
+            modifier = Modifier.align(Alignment.CenterHorizontally) // Coloca el botón en la parte inferior
+        ) {
             Text("Ver vuelos seleccionados")
         }
     }
 }
 
-@Composable
-fun insertFlightToDatabase(flightEntity: FlightEntity, flightDao: FlightDao) {
-    // Aquí utilizamos LaunchedEffect para invocar la corutina de forma segura
-    LaunchedEffect(flightEntity) {
-        flightDao.insertFlight(flightEntity) // Inserta el vuelo en la base de datos
-    }
-}
+
+
+
+
+
+
 
 @Composable
 fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
@@ -203,11 +235,46 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
     }
 }
 
-// Función para hacer la solicitud HTTP a AviationStack
-suspend fun fetchFlightsFromApi(): Response {
+suspend fun fetchFlightsFromApi(): FlightResponse {
     val client = OkHttpClient()
     val url = "https://api.aviationstack.com/v1/flights?access_key=$apiKey"
     val request = Request.Builder().url(url).build()
-    return client.newCall(request).execute()
+
+    // Intentar realizar la llamada a la API y capturar cualquier excepción
+    try {
+        // Realizar la llamada a la API en un hilo de fondo
+        val response = client.newCall(request).execute()
+
+        // Verifica si la respuesta fue exitosa
+        if (!response.isSuccessful) {
+            println("Código de estado: ${response.code}")
+            throw Exception("Error en la llamada a la API: ${response.message}")
+        }
+
+        // Leer el cuerpo de la respuesta solo una vez
+        val responseBody = response.body?.string()
+
+        // Verifica si el cuerpo es nulo o vacío
+        if (responseBody.isNullOrEmpty()) {
+            throw Exception("Respuesta vacía de la API")
+        }
+
+        // Imprime la respuesta de la API para depuración
+        println("Respuesta de la API: $responseBody")
+
+        // Deserializar la respuesta
+        return Gson().fromJson(responseBody, FlightResponse::class.java)
+    } catch (e: Exception) {
+        // Imprimir más detalles si algo sale mal
+        println("Error en la llamada a la API: ${e.localizedMessage}")
+        e.printStackTrace()  // Para obtener más detalles sobre el error
+        throw e
+    }
 }
+
+
+
+
+
+
 

@@ -4,12 +4,12 @@ import androidx.room.*
 
 @Dao
 interface FlightDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFlight(flight: FlightEntity)
+    @Query("SELECT * FROM flights")
+    suspend fun getAllFlights(): List<FlightEntity>
+
+    @Insert
+    suspend fun insertFlight(flight: FlightEntity): Long
 
     @Delete
-    suspend fun deleteFlight(flight: FlightEntity)
-
-    @Query("SELECT * FROM selected_flights")
-    suspend fun getAllFlights(): List<FlightEntity>
+    suspend fun deleteFlight(flight: FlightEntity): Int
 }
