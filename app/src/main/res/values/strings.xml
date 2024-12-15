@@ -1,3 +1,20 @@
 <resources>
-    <string name="app_name">VueLink</string>
+    <string name="app_name" translatable="false">VueLink</string>
+    <string name="flight_number_or_airline">Flight number or airline</string>
+    <string name="search">Search</string>
+    <string name="search_flights">Search flights</string>
+    <string name="loading_flights">Loading flights…</string>
+    <string name="flight">Flight: %1$s</string>
+    <string name="status">Status: %1$s</string>
+    <string name="departure">Departure: %1$s</string>
+    <string name="arrival">Arrival: %1$s</string>
+    <string name="airline">Airline: %1$s</string>
+    <string name="flight_number">Flight number: %1$s</string>
+    <string name="not_available">Not available</string>
+    <string name="flight_saved_successfully">Flight saved successfully</string>
+    <string name="select">Select</string>
+    <string name="view_selected_flights">View selected flights</string>
+    <string name="selected_flights">Selected flights</string>
+    <string name="no_selected_flights">No selected flights</string>
+    <string name="return_to_search">Return to search</string>
 </resources>

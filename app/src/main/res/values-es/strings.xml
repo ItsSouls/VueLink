@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VueLink</string>
+    <string name="flight_number_or_airline">Número de vuelo o aerolínea</string>
+    <string name="search">Buscar</string>
+    <string name="search_flights">Buscar vuelos</string>
+    <string name="loading_flights">Cargando vuelos…</string>
+    <string name="flight">Vuelo: %1$s</string>
+    <string name="status">Estado: %1$s</string>
+    <string name="departure">Salida: %1$s</string>
+    <string name="arrival">Llegada: %1$s</string>
+    <string name="airline">Aerolínea: %1$s</string>
+    <string name="flight_number">Número de vuelo: %1$s</string>
+    <string name="not_available">No disponible</string>
+    <string name="flight_saved_successfully">Vuelo guardado exitosamente</string>
+    <string name="select">Seleccionar</string>
+    <string name="view_selected_flights">Ver vuelos seleccionados</string>
+    <string name="selected_flights">Vuelos seleccionados</string>
+    <string name="no_selected_flights">No hay vuelos seleccionados</string>
+    <string name="return_to_search">Volver a buscar</string>
+</resources>
