@@ -1,7 +1,7 @@
 package es.uma.vuelink
 
-import Flight
-import FlightResponse
+import es.uma.vuelink.model.Flight
+import es.uma.vuelink.model.FlightResponse
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -97,7 +97,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                         val flightIata =
                             flight.flight.iata?.contains(searchQuery, ignoreCase = true) == true
                         val airlineName =
-                            flight.airline.name.contains(searchQuery, ignoreCase = true)
+                            flight.airline.name?.contains(searchQuery, ignoreCase = true) == true
                         flightIata || airlineName
                     }
                 } catch (e: Exception) {
@@ -168,11 +168,20 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(text = stringResource(R.string.flight, flight.flight_date))
-                            Text(text = stringResource(R.string.status, flight.flight_status))
-                            Text(text = stringResource(R.string.departure, flight.departure.airport))
+                            Text(text = stringResource(R.string.flight, flight.flightDate))
+                            Text(text = stringResource(R.string.status, flight.flightStatus))
+                            Text(
+                                text = stringResource(
+                                    R.string.departure, flight.departure.airport
+                                )
+                            )
                             Text(text = stringResource(R.string.arrival, flight.arrival.airport))
-                            Text(text = stringResource(R.string.airline, flight.airline.name))
+                            Text(
+                                text = stringResource(
+                                    R.string.airline,
+                                    flight.airline.name ?: stringResource(R.string.not_available)
+                                )
+                            )
                             Text(
                                 text = stringResource(
                                     R.string.flight_number,
@@ -181,12 +190,11 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                             )
                         }
 
-                        // Usar Modifier.align en el botón para centrarlo verticalmente
                         Button(
                             onClick = {
                                 val flightEntity = FlightEntity(
-                                    flightDate = flight.flight_date,
-                                    flightStatus = flight.flight_status,
+                                    flightDate = flight.flightDate,
+                                    flightStatus = flight.flightStatus,
                                     departureAirport = flight.departure.airport,
                                     arrivalAirport = flight.arrival.airport,
                                     airlineName = flight.airline.name,
@@ -202,8 +210,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                         ).show()
                                     }
                                 }
-                            },
-                            modifier = Modifier.align(Alignment.CenterVertically)  // Alinear el botón verticalmente
+                            }, modifier = Modifier.align(Alignment.CenterVertically)
                         ) {
                             Text(stringResource(R.string.select))
                         }
@@ -212,13 +219,11 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             }
         }
 
-        // Spacer para separar el botón de la lista
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón de "Ver vuelos seleccionados"
         Button(
             onClick = { navController.navigate("selected") },
-            modifier = Modifier.align(Alignment.CenterHorizontally) // Coloca el botón en la parte inferior
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(stringResource(R.string.view_selected_flights))
         }
@@ -247,11 +252,21 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
         } else {
             selectedFlights.forEach { flight ->
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(text = stringResource(R.string.flight, flight.flightDate))
+                    Text(
+                        text = stringResource(
+                            R.string.flight,
+                            flight.flightDate ?: stringResource(R.string.not_available)
+                        )
+                    )
                     Text(text = stringResource(R.string.status, flight.flightStatus))
                     Text(text = stringResource(R.string.departure, flight.departureAirport))
                     Text(text = stringResource(R.string.arrival, flight.arrivalAirport))
-                    Text(text = stringResource(R.string.airline, flight.airlineName))
+                    Text(
+                        text = stringResource(
+                            R.string.airline,
+                            flight.airlineName ?: stringResource(R.string.not_available)
+                        )
+                    )
                     Text(
                         text = stringResource(
                             R.string.flight_number,

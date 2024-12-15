@@ -1,16 +1,20 @@
+package es.uma.vuelink.model
+
+import com.google.gson.annotations.SerializedName
+
 data class FlightResponse(
     val data: List<Flight>
 )
 
 data class Flight(
-    val flight_date: String,
-    val flight_status: String,
+    @SerializedName("flight_date") val flightDate: String,
+    @SerializedName("flight_status") val flightStatus: String,
     val departure: AirportDetails,
     val arrival: AirportDetails,
     val airline: Airline,
     val flight: FlightInfo,
-    val aircraft: Any?, // Puede ser cualquier cosa, según la respuesta de la API
-    val live: Any? // Puede ser cualquier cosa, según la respuesta de la API
+    val aircraft: Any?,
+    val live: Any?
 )
 
 data class AirportDetails(
@@ -24,19 +28,14 @@ data class AirportDetails(
     val scheduled: String,
     val estimated: String,
     val actual: String?,
-    val estimated_runway: String?,
-    val actual_runway: String?
+    @SerializedName("estimated_runway") val estimatedRunway: String?,
+    @SerializedName("actual_runway") val actualRunway: String?
 )
 
 data class Airline(
-    val name: String,
-    val iata: String?,
-    val icao: String?
+    val name: String?, val iata: String?, val icao: String?
 )
 
 data class FlightInfo(
-    val number: String?,
-    val iata: String?,
-    val icao: String?,
-    val codeshared: Any? // Puede ser un objeto o null
+    val number: String?, val iata: String?, val icao: String?, val codeshared: Any?
 )

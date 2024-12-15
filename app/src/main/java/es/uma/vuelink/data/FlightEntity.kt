@@ -6,12 +6,11 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "flights")
 data class FlightEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    @ColumnInfo(name = "flightDate") val flightDate: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @ColumnInfo(name = "flightDate") val flightDate: String?,
     @ColumnInfo(name = "flightStatus") val flightStatus: String,
     @ColumnInfo(name = "departureAirport") val departureAirport: String,
     @ColumnInfo(name = "arrivalAirport") val arrivalAirport: String,
-    @ColumnInfo(name = "airlineName") val airlineName: String,
+    @ColumnInfo(name = "airlineName") val airlineName: String?,
     @ColumnInfo(name = "flightNumber") val flightNumber: String?
 )
