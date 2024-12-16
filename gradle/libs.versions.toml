@@ -8,43 +8,50 @@ gson = "2.11.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 kotlin = "2.1.0"
-kotlinx-coroutines-core = "1.7.3"
+kotlinx-coroutines-core = "1.9.0"
 ksp = "2.1.0-1.0.29"
+maps-compose = "6.2.0"
 material3 = "1.3.1"
 monitor = "1.7.2"
 navigation = "2.8.5"
 okhttp = "4.12.0"
+play-services-location = "21.3.0"
+play-services-maps = "19.0.0"
 room = "2.6.1"
 sqlite = "2.4.0"
 
 [libraries]
-androidx-activity-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
-androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
-androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "compose" }
-androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
-androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "compose" }
-androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
-androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "compose" }
-androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "compose" }
-androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "compose" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-androidx-navigation-common = { group = "androidx.navigation", name = "navigation-common", version.ref = "navigation" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
-androidx-navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime", version.ref = "navigation" }
-androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "room" }
-androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlite" }
-androidx-test = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "compose" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "compose" }
+compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "compose" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "compose" }
+compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "compose" }
+compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "compose" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
+maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "maps-compose" }
+navigation-common = { group = "androidx.navigation", name = "navigation-common", version.ref = "navigation" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime", version.ref = "navigation" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "play-services-location" }
+play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "play-services-maps" }
+room-common = { group = "androidx.room", name = "room-common", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+runtime-saveable = { group = "androidx.compose.runtime", name = "runtime-saveable", version.ref = "compose" }
+sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "sqlite" }
+test-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -52,4 +59,3 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-
