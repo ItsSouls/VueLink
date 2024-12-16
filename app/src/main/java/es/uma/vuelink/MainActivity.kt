@@ -7,11 +7,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -63,7 +65,7 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-private const val apiKey = "1ca4c88141825a87f533f8b64d9723af"
+private const val apiKey = "be97c6bf71379b3289e9fd7b10b9174d"
 
 class MainActivity : ComponentActivity() {
 
@@ -90,16 +92,14 @@ class MainActivity : ComponentActivity() {
                             backStackEntry.arguments?.getString("departureAirport")
                         val arrivalAirport = backStackEntry.arguments?.getString("arrivalAirport")
 
-                        // Obtener el FlightDao
+
                         flightDao = AppDatabase.getInstance(LocalContext.current).flightDao()
 
-                        // Cargar las coordenadas de los aeropuertos
+                        // Cargar las coordenadas del JSON
                         val airportCoordinatesList = loadAirportCoordinates(LocalContext.current)
 
-                        // State para almacenar los detalles del vuelo
                         val flightDetails = remember { mutableStateOf<FlightEntity?>(null) }
 
-                        // Cargar los detalles del vuelo de manera asíncrona
                         LaunchedEffect(departureAirport, arrivalAirport) {
                             if (!departureAirport.isNullOrEmpty() && !arrivalAirport.isNullOrEmpty()) {
                                 // Obtener los detalles del vuelo de la base de datos
@@ -322,6 +322,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
 fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
     VueLinkTheme {
         val selectedFlights = remember { mutableStateListOf<FlightEntity>() }
+        val scope = rememberCoroutineScope() // Corutina scope
+        var showDeleteDialog by remember { mutableStateOf(false) } // Estado para el diálogo
+        var flightToDelete by remember { mutableStateOf<FlightEntity?>(null) } // Vuelo seleccionado para borrar
 
         LaunchedEffect(Unit) {
             val flights = flightDao.getAllFlights()
@@ -329,33 +332,40 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
             selectedFlights.addAll(flights)
         }
 
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
             Text(
                 text = stringResource(R.string.selected_flights),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            // Si la lista de vuelos está vacía, mostramos un mensaje
             if (selectedFlights.isEmpty()) {
                 Text(text = stringResource(R.string.no_selected_flights))
             } else {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f) // Permitir que la lista ocupe una parte proporcional del espacio
+                        .fillMaxWidth()
+                ) {
                     items(selectedFlights) { flight ->
-                        // Card para cada vuelo
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 8.dp)
+                                .padding(horizontal = 16.dp),
                             shape = MaterialTheme.shapes.medium
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                // Información del vuelo dentro de la tarjeta
                                 Text(
                                     text = stringResource(
                                         R.string.flight,
                                         flight.flightDate ?: stringResource(R.string.not_available)
-                                    ), style = MaterialTheme.typography.bodyLarge
+                                    ),
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
                                 Text(text = stringResource(R.string.status, flight.flightStatus))
                                 Text(
@@ -364,7 +374,9 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
                                         flight.departureAirport
                                     )
                                 )
-                                Text(text = stringResource(R.string.arrival, flight.arrivalAirport))
+                                Text(
+                                    text = stringResource(R.string.arrival, flight.arrivalAirport)
+                                )
                                 Text(
                                     text = stringResource(
                                         R.string.airline,
@@ -379,26 +391,35 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
                                     )
                                 )
 
-                                // Aquí agregamos el botón dentro de la tarjeta
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(56.dp), // Altura del botón
-                                    verticalAlignment = Alignment.CenterVertically, // Centrado vertical
-                                    horizontalArrangement = Arrangement.End // Alineamos a la derecha
+                                        .height(56.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
                                 ) {
+                                    // Botón para ver el mapa
                                     Button(
                                         onClick = {
-                                            // Obtener los códigos IATA de los aeropuertos de salida y destino
                                             val departureIATA = flight.departureIATA
                                             val arrivalIATA = flight.arrivalIATA
-
-                                            // Navegar a la pantalla del mapa, pasando los códigos IATA
                                             navController.navigate("map/$departureIATA/$arrivalIATA")
-                                        },
-                                        modifier = Modifier.align(Alignment.CenterVertically) // Centrado vertical del botón
+                                        }
                                     ) {
-                                        Text("Ver mapa")
+                                        Text(stringResource(R.string.show_map))
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp)) // Espaciado entre los botones
+
+                                    // Botón para mostrar el diálogo de confirmación
+                                    Button(
+                                        onClick = {
+                                            // Asignamos el vuelo a eliminar y mostramos el diálogo
+                                            flightToDelete = flight
+                                            showDeleteDialog = true
+                                        }
+                                    ) {
+                                        Text(stringResource(R.string.remove_flight))
                                     }
                                 }
                             }
@@ -407,51 +428,63 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
                 }
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = stringResource(R.string.selected_flights),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                if (selectedFlights.isEmpty()) {
-                    Text(text = stringResource(R.string.no_selected_flights))
-                } else {
-                    selectedFlights.forEach { flight ->
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Text(
-                                text = stringResource(
-                                    R.string.flight,
-                                    flight.flightDate ?: stringResource(R.string.not_available)
-                                )
-                            )
-                            Text(text = stringResource(R.string.status, flight.flightStatus))
-                            Text(text = stringResource(R.string.departure, flight.departureAirport))
-                            Text(text = stringResource(R.string.arrival, flight.arrivalAirport))
-                            Text(
-                                text = stringResource(
-                                    R.string.airline,
-                                    flight.airlineName ?: stringResource(R.string.not_available)
-                                )
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.flight_number,
-                                    flight.flightNumber ?: stringResource(R.string.not_available)
-                                )
-                            )
+            // Botón centrado horizontalmente, consistente con el otro botón
+            Button(
+                onClick = { navController.navigate("search") },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(stringResource(R.string.return_to_search))
+            }
+        }
+
+        // Diálogo de confirmación para borrar el vuelo
+        if (showDeleteDialog && flightToDelete != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    // Cerrar el diálogo si el usuario hace clic fuera de él
+                    showDeleteDialog = false
+                },
+                title = {
+                    Text(stringResource(R.string.confirm_delete))
+                },
+                text = {
+                    Text(stringResource(R.string.are_you_sure_delete, flightToDelete?.flightNumber ?: stringResource(R.string.not_available)))
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            // Eliminar el vuelo de la base de datos y la lista
+                            scope.launch {
+                                flightDao.deleteFlight(flightToDelete!!)
+                                selectedFlights.remove(flightToDelete) // Eliminar de la lista
+                            }
+                            showDeleteDialog = false // Cerrar el diálogo
                         }
+                    ) {
+                        Text(stringResource(R.string.confirm))
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            // Solo cerrar el diálogo sin hacer nada
+                            showDeleteDialog = false
+                        }
+                    ) {
+                        Text(stringResource(R.string.cancel))
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { navController.navigate("search") }) {
-                    Text(stringResource(R.string.return_to_search))
-                }
-            }
+            )
         }
     }
 }
+
+
+
+
+
 
 fun fetchFlightsFromApi(): FlightResponse {
     val client = OkHttpClient()
@@ -637,10 +670,10 @@ fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): D
 
 fun calculateZoomLevel(distance: Double): Float {
     return when {
-        distance < 100 -> 12f   // Muy cerca (alrededor de la ciudad)
-        distance < 500 -> 10f   // Distancia pequeña (ciudades cercanas)
-        distance < 1000 -> 9f   // Distancia media (entre ciudades o regiones)
-        distance < 1500 -> 8f   // Distancia media (entre ciudades o regiones)
+        distance < 100 -> 9f  // Muy cerca (alrededor de la ciudad)
+        distance < 400 -> 8f  // Cerca (alrededor de la ciudad)
+        distance < 1000 -> 7f   // Distancia media (entre ciudades o regiones)
+        distance < 1500 -> 6f   // Distancia media (entre ciudades o regiones)
         distance < 2000 -> 5f   // Para distancias medias
         distance < 5000 -> 4f   // Distancia larga (países cercanos)
         distance < 10000 -> 3f // Distancia larga (países cercanos)

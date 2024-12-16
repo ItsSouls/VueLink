@@ -12,10 +12,25 @@
     <string name="flight_number">Flight number: %1$s</string>
     <string name="not_available">Not available</string>
     <string name="flight_saved_successfully">Flight saved successfully</string>
+    <string name="flight_already_saved">"Flight already saved"</string>
     <string name="select">Select</string>
     <string name="view_selected_flights">View selected flights</string>
     <string name="selected_flights">Selected flights</string>
+    <string name="go_back">go back</string>
+    <string name="search_more_flights">Search more flights</string>
     <string name="no_selected_flights">No selected flights</string>
     <string name="return_to_search">Return to search</string>
+    <string name="flight_date">Flight date: </string>
+    <string name="departure_airport">Departure Airport: %1$s</string>
+    <string name="arrival_airport">Arrival Airport: %1$s</string>
+    <string name="airline_name">Airline Name: %1$s</string>
+    <string name="unknown">Unknown</string>
     <string name="google_maps_api_key" translatable="false">AIzaSyDMPIqlUKj-FpMtgzUFrGCMmHcb32eeuJc</string>
+    <string name="show_map">Show map</string>
+    <string name="remove_flight">Delete</string>
+    <string name="confirm_delete">Delete:</string>
+    <string name="are_you_sure_delete">¿Are you sure you want to delete the flight %1$s?</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+
 </resources>
