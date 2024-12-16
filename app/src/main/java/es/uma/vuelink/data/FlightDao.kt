@@ -12,4 +12,7 @@ interface FlightDao {
 
     @Delete
     suspend fun deleteFlight(flight: FlightEntity): Int
+
+    @Query("SELECT * FROM flights WHERE departureIATA = :departureIATA AND arrivalIATA = :arrivalIATA LIMIT 1")
+    suspend fun getFlightDetails(departureIATA: String, arrivalIATA: String): FlightEntity?
 }

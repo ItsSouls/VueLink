@@ -17,4 +17,5 @@
     <string name="selected_flights">Selected flights</string>
     <string name="no_selected_flights">No selected flights</string>
     <string name="return_to_search">Return to search</string>
+    <string name="google_maps_api_key" translatable="false">AIzaSyDMPIqlUKj-FpMtgzUFrGCMmHcb32eeuJc</string>
 </resources>

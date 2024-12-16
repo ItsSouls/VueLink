@@ -11,6 +11,9 @@ data class FlightEntity(
     @ColumnInfo(name = "flightStatus") val flightStatus: String,
     @ColumnInfo(name = "departureAirport") val departureAirport: String,
     @ColumnInfo(name = "arrivalAirport") val arrivalAirport: String,
+    @ColumnInfo(name = "departureIATA") val departureIATA: String,  // Añadir código IATA
+    @ColumnInfo(name = "arrivalIATA") val arrivalIATA: String,      // Añadir código IATA
     @ColumnInfo(name = "airlineName") val airlineName: String?,
     @ColumnInfo(name = "flightNumber") val flightNumber: String?
 )
+
