@@ -15,6 +15,16 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField(
+            "String",
+            "AVIATIONSTACK_API_KEY",
+            "\"${project.findProperty("AVIATIONSTACK_API_KEY")}\""
+        )
+        resValue(
+            "string",
+            "GMAPS_API_KEY",
+            "\"${project.findProject("GMAPS_API_KEY")}\""
+        )
     }
 
     buildTypes {
@@ -36,6 +46,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 }

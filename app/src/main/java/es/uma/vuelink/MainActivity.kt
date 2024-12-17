@@ -65,8 +65,6 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-private const val apiKey = "be97c6bf71379b3289e9fd7b10b9174d"
-
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -482,13 +480,10 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
 }
 
 
-
-
-
-
 fun fetchFlightsFromApi(): FlightResponse {
     val client = OkHttpClient()
-    val url = "https://api.aviationstack.com/v1/flights?access_key=$apiKey"
+    val url =
+        "https://api.aviationstack.com/v1/flights?access_key=${BuildConfig.AVIATIONSTACK_API_KEY}"
     val request = Request.Builder().url(url).build()
 
     // Intentar realizar la llamada a la API y capturar cualquier excepción

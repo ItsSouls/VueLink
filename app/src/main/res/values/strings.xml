@@ -25,12 +25,10 @@
     <string name="arrival_airport">Arrival Airport: %1$s</string>
     <string name="airline_name">Airline Name: %1$s</string>
     <string name="unknown">Unknown</string>
-    <string name="google_maps_api_key" translatable="false">AIzaSyDMPIqlUKj-FpMtgzUFrGCMmHcb32eeuJc</string>
     <string name="show_map">Show map</string>
     <string name="remove_flight">Delete</string>
     <string name="confirm_delete">Delete:</string>
     <string name="are_you_sure_delete">¿Are you sure you want to delete the flight %1$s?</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
-
 </resources>
