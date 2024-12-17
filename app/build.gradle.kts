@@ -41,18 +41,17 @@ android {
 }
 
 dependencies {
+    // Compose BOM
+    val composeBom = platform(libs.compose.bom)
+    implementation(composeBom)
+    testImplementation(composeBom)
+    androidTestImplementation(composeBom)
+
     implementation(libs.activity)
     implementation(libs.activity.compose)
     implementation(libs.annotation)
-    implementation(libs.compose.animation)
     implementation(libs.compose.foundation)
-    implementation(libs.compose.foundation.layout)
     implementation(libs.compose.material3)
-    implementation(libs.compose.runtime)
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.graphics)
-    implementation(libs.compose.ui.text)
-    implementation(libs.compose.ui.unit)
     implementation(libs.constraintlayout)
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.core)
@@ -66,7 +65,6 @@ dependencies {
     implementation(libs.room.common)
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
-    implementation(libs.runtime.saveable)
     implementation(libs.sqlite)
     ksp(libs.room.compiler)
     testImplementation(libs.junit)
