@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +18,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Airlines
+import androidx.compose.material.icons.filled.Flight
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,11 +53,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -68,9 +98,9 @@ import kotlin.math.sqrt
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // Base de datos
         var flightDao = AppDatabase.getInstance(this).flightDao()
 
         setContent {
@@ -84,7 +114,6 @@ class MainActivity : ComponentActivity() {
                     composable("selected") {
                         SelectedFlightsScreen(navController, flightDao)
                     }
-                    // Nueva ruta para la pantalla del mapa
                     composable("map/{departureAirport}/{arrivalAirport}") { backStackEntry ->
                         val departureAirport =
                             backStackEntry.arguments?.getString("departureAirport")
@@ -93,20 +122,17 @@ class MainActivity : ComponentActivity() {
 
                         flightDao = AppDatabase.getInstance(LocalContext.current).flightDao()
 
-                        // Cargar las coordenadas del JSON
                         val airportCoordinatesList = loadAirportCoordinates(LocalContext.current)
 
                         val flightDetails = remember { mutableStateOf<FlightEntity?>(null) }
 
                         LaunchedEffect(departureAirport, arrivalAirport) {
                             if (!departureAirport.isNullOrEmpty() && !arrivalAirport.isNullOrEmpty()) {
-                                // Obtener los detalles del vuelo de la base de datos
                                 flightDetails.value =
                                     flightDao.getFlightDetails(departureAirport, arrivalAirport)
                             }
                         }
 
-                        // Pasar las coordenadas de los aeropuertos y los detalles del vuelo a la pantalla de mapa
                         AirportMapScreen(
                             navController,
                             departureAirport,
@@ -121,7 +147,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     VueLinkTheme {
@@ -131,14 +157,14 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
         var errorMessage by remember { mutableStateOf<String?>(null) }
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val textFieldState = rememberTextFieldState()
+        var expanded by rememberSaveable { mutableStateOf(false) }
 
-        // Función que ejecuta la búsqueda
         fun launchSearch() {
             if (searchQuery.isNotBlank()) {
                 loading = true
                 errorMessage = null
 
-                // Ejecutar la llamada a la API
                 scope.launch {
                     try {
                         val flightResponse = withContext(Dispatchers.IO) { fetchFlightsFromApi() }
@@ -150,11 +176,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                 flight.departure.iata.contains(searchQuery, ignoreCase = true)
                             val arrivalIATA =
                                 flight.arrival.iata.contains(searchQuery, ignoreCase = true)
-                            val airlineName =
-                                flight.airline.name?.contains(
-                                    searchQuery,
-                                    ignoreCase = true
-                                ) == true
+                            val airlineName = flight.airline.name?.contains(
+                                searchQuery, ignoreCase = true
+                            ) == true
                             flightIata || airlineName || departureIATA || arrivalIATA
                         }
                     } catch (e: Exception) {
@@ -168,56 +192,101 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.search_flights),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                TextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    label = { Text(stringResource(R.string.flight_number_or_airline)) },
-                    modifier = Modifier.weight(1f)
-                )
-                Button(onClick = { launchSearch() }) {
-                    Text(stringResource(R.string.search))
+        Scaffold(topBar = {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                SearchBar(
+                    modifier = Modifier,
+                    inputField = {
+                        SearchBarDefaults.InputField(
+                            onSearch = {
+                                expanded = false
+                                launchSearch()
+                            },
+                            expanded = expanded,
+                            onExpandedChange = { expanded = it },
+                            placeholder = { Text(stringResource(R.string.search_flights)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Search, contentDescription = null
+                                )
+                            },
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                        )
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                ) {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        var resultText = "3U4828"
+                        ListItem(headlineContent = { Text(resultText) },
+                            supportingContent = { Text(stringResource(R.string.search_flight_number)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Flight, contentDescription = null
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier
+                                .clickable {
+                                    textFieldState.setTextAndPlaceCursorAtEnd(resultText)
+                                    expanded = false
+                                }
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp))
+                        resultText = "Air Travel"
+                        ListItem(headlineContent = { Text(resultText) },
+                            supportingContent = { Text(stringResource(R.string.search_airline)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Airlines, contentDescription = null
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier
+                                .clickable {
+                                    textFieldState.setTextAndPlaceCursorAtEnd(resultText)
+                                    expanded = false
+                                }
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp))
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
+        }, bottomBar = {
+            BottomAppBar {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Button(
+                        onClick = { navController.navigate("selected") },
+                    ) {
+                        Text(stringResource(R.string.view_saved_flights))
+                    }
+                }
+            }
+        }) { innerPadding ->
 
             if (loading) {
-                Text(text = stringResource(R.string.loading_flights))
+                Text(
+                    text = stringResource(R.string.loading_flights), Modifier.padding(innerPadding)
+                )
             }
 
             errorMessage?.let {
-                Text(text = it, color = androidx.compose.ui.graphics.Color.Red)
+                Text(text = it, color = Color.Red, modifier = Modifier.padding(innerPadding))
             }
 
-            // LazyColumn con los vuelos
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                contentPadding = innerPadding,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.semantics { traversalIndex = 1f },
             ) {
                 items(flights) { flight ->
-                    // Envolver cada item de vuelo en un Card para darle un borde y sombra
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)  // Espacio entre los elementos
-                            .padding(horizontal = 16.dp),  // Espacio a los lados
-                        shape = MaterialTheme.shapes.medium,  // Bordes redondeados
+                            .padding(vertical = 8.dp)
+                            .padding(horizontal = 16.dp),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Row(
                             modifier = Modifier
@@ -235,8 +304,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                 )
                                 Text(
                                     text = stringResource(
-                                        R.string.arrival,
-                                        flight.arrival.airport
+                                        R.string.arrival, flight.arrival.airport
                                     )
                                 )
                                 Text(
@@ -261,21 +329,18 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                         flightStatus = flight.flightStatus,
                                         departureAirport = flight.departure.airport,
                                         arrivalAirport = flight.arrival.airport,
-                                        departureIATA = flight.departure.iata,  // Guardar el IATA
-                                        arrivalIATA = flight.arrival.iata,      // Guardar el IATA
+                                        departureIATA = flight.departure.iata,
+                                        arrivalIATA = flight.arrival.iata,
                                         airlineName = flight.airline.name,
                                         flightNumber = flight.flight.iata
                                     )
 
-                                    // Comprobar si el vuelo ya está guardado
                                     scope.launch(Dispatchers.IO) {
-                                        // Verificar si el vuelo ya existe
                                         val existingFlight = flightDao.getFlightDetails(
                                             flight.departure.iata, flight.arrival.iata
                                         )
 
                                         if (existingFlight == null) {
-                                            // Si no existe, insertar el vuelo en la base de datos
                                             flightDao.insertFlight(flightEntity)
                                             withContext(Dispatchers.Main) {
                                                 Toast.makeText(
@@ -285,11 +350,10 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                                 ).show()
                                             }
                                         } else {
-                                            // Si ya existe, mostrar un mensaje de error
                                             withContext(Dispatchers.Main) {
                                                 Toast.makeText(
                                                     context,
-                                                    "Este vuelo ya ha sido seleccionado.",
+                                                    context.getString(R.string.flight_already_saved),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -297,20 +361,11 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                     }
                                 }, modifier = Modifier.align(Alignment.CenterVertically)
                             ) {
-                                Text(stringResource(R.string.select))
+                                Text(stringResource(R.string.save))
                             }
                         }
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { navController.navigate("selected") },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(stringResource(R.string.view_selected_flights))
             }
         }
     }
@@ -336,13 +391,13 @@ fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao
                 .padding(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.selected_flights),
+                text = stringResource(R.string.saved_flights),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
             if (selectedFlights.isEmpty()) {
-                Text(text = stringResource(R.string.no_selected_flights))
+                Text(text = stringResource(R.string.no_saved_flights))
             } else {
                 LazyColumn(
                     modifier = Modifier
@@ -614,31 +669,28 @@ fun AirportMapScreen(
                     Text(text = "Fecha de vuelo: ${flight.flightDate}")
                     Text(text = "Aeropuerto de salida: ${flight.departureAirport}")
                     Text(text = "Aeropuerto de llegada: ${flight.arrivalAirport}")
-                    Text(text = "Nombre de la aerolínea: ${flight.airlineName ?: "Desconocido"}")
-                    Text(text = "Número de vuelo: ${flight.flightNumber ?: "Desconocido"}")
+                    Text(text = "Nombre de la aerolínea: ${flight.airlineName ?: R.string.unknown}")
+                    Text(text = "Número de vuelo: ${flight.flightNumber ?: R.string.unknown}")
                 }
 
-                // Botones para navegar
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(
                         onClick = {
-                            // Volver a la pantalla anterior (search o selected según el contexto)
                             navController.popBackStack()
                         }, modifier = Modifier.weight(1f)
                     ) {
-                        Text("Volver")
+                        Text(stringResource(R.string.go_back))
                     }
 
                     Button(
                         onClick = {
-                            // Regresar a la pantalla de búsqueda
                             navController.navigate("search")
                         }, modifier = Modifier.weight(1f)
                     ) {
-                        Text("Buscar más vuelos")
+                        Text(stringResource(R.string.search_more_flights))
                     }
                 }
             }

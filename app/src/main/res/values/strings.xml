@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">VueLink</string>
-    <string name="flight_number_or_airline">Flight number or airline</string>
+    <string name="search_flight_number">Flight number</string>
+    <string name="search_airline">Airline</string>
     <string name="search">Search</string>
     <string name="search_flights">Search flights</string>
     <string name="loading_flights">Loading flights…</string>
@@ -13,12 +14,12 @@
     <string name="not_available">Not available</string>
     <string name="flight_saved_successfully">Flight saved successfully</string>
     <string name="flight_already_saved">"Flight already saved"</string>
-    <string name="select">Select</string>
-    <string name="view_selected_flights">View selected flights</string>
-    <string name="selected_flights">Selected flights</string>
-    <string name="go_back">go back</string>
+    <string name="save">Save</string>
+    <string name="view_saved_flights">Saved flights</string>
+    <string name="saved_flights">Saved flights</string>
+    <string name="go_back">Go back</string>
     <string name="search_more_flights">Search more flights</string>
-    <string name="no_selected_flights">No selected flights</string>
+    <string name="no_saved_flights">No saved flights</string>
     <string name="return_to_search">Return to search</string>
     <string name="flight_date">Flight date: </string>
     <string name="departure_airport">Departure Airport: %1$s</string>

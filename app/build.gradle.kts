@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.annotation)
     implementation(libs.compose.foundation)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.compose.material3)
     implementation(libs.constraintlayout)
     implementation(libs.gson)
