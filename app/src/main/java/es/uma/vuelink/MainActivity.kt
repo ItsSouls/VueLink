@@ -26,16 +26,17 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.AirplaneTicket
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Airlines
 import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -258,15 +259,12 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                     }
                 }
             }
-        }, bottomBar = {
-            BottomAppBar {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Button(
-                        onClick = { navController.navigate("saved") },
-                    ) {
-                        Text(stringResource(R.string.view_saved_flights))
-                    }
-                }
+        }, floatingActionButton = {
+            FloatingActionButton(onClick = { navController.navigate("saved") }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.AirplaneTicket,
+                    contentDescription = stringResource(R.string.view_saved_flights)
+                )
             }
         }) { innerPadding ->
 
@@ -436,10 +434,24 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         Text(
                                             text = stringResource(
-                                                R.string.flight,
+                                                R.string.flight_number,
+                                                flight.flightNumber
+                                                    ?: stringResource(R.string.not_available)
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.airline,
+                                                flight.airlineName
+                                                    ?: stringResource(R.string.not_available)
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.flight_date,
                                                 flight.flightDate
                                                     ?: stringResource(R.string.not_available)
-                                            ), style = MaterialTheme.typography.bodyLarge
+                                            )
                                         )
                                         Text(
                                             text = stringResource(
@@ -454,20 +466,6 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                         Text(
                                             text = stringResource(
                                                 R.string.arrival, flight.arrivalAirport
-                                            )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.airline,
-                                                flight.airlineName
-                                                    ?: stringResource(R.string.not_available)
-                                            )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.flight_number,
-                                                flight.flightNumber
-                                                    ?: stringResource(R.string.not_available)
                                             )
                                         )
 
