@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -30,6 +32,7 @@ import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,7 +46,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -390,21 +396,18 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                LargeTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.saved_flights),
+                LargeTopAppBar(title = {
+                    Text(
+                        text = stringResource(R.string.saved_flights),
+                    )
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Localized description"
                         )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navController.navigate("search") }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Localized description"
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
+                    }
+                }, scrollBehavior = scrollBehavior
                 )
             },
             content = { innerPadding ->
@@ -565,6 +568,7 @@ fun fetchFlightsFromApi(): FlightResponse {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AirportMapScreen(
     navController: NavHostController,
@@ -602,79 +606,78 @@ fun AirportMapScreen(
         }
 
         val zoomLevel = calculateZoomLevel(distance)
+        val scaffoldState = rememberBottomSheetScaffoldState()
 
         LaunchedEffect(midpoint, zoomLevel) {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(midpoint, zoomLevel)
         }
 
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            GoogleMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                cameraPositionState = cameraPositionState
-            ) {
-                departureCoordinates?.let {
-                    Marker(
-                        state = MarkerState(position = LatLng(it.latitude, it.longitude)),
-                        title = it.iata,
-                        snippet = it.iata
-                    )
-                }
-
-                arrivalCoordinates?.let {
-                    Marker(
-                        state = MarkerState(position = LatLng(it.latitude, it.longitude)),
-                        title = it.iata,
-                        snippet = it.iata
-                    )
-                }
-
-                if (departureCoordinates != null && arrivalCoordinates != null) {
-                    Polyline(
-                        points = listOf(
-                            LatLng(departureCoordinates.latitude, departureCoordinates.longitude),
-                            LatLng(arrivalCoordinates.latitude, arrivalCoordinates.longitude)
-                        ), color = Color.Blue, width = 5f
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                flightDetails?.let { flight ->
-                    Text(text = "Fecha de vuelo: ${flight.flightDate}")
-                    Text(text = "Aeropuerto de salida: ${flight.departureAirport}")
-                    Text(text = "Aeropuerto de llegada: ${flight.arrivalAirport}")
-                    Text(text = "Nombre de la aerolínea: ${flight.airlineName ?: R.string.unknown}")
-                    Text(text = "Número de vuelo: ${flight.flightNumber ?: R.string.unknown}")
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+        BottomSheetScaffold(scaffoldState = scaffoldState,
+            sheetPeekHeight = 128.dp,
+            sheetContent = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Button(
-                        onClick = {
-                            navController.popBackStack()
-                        }, modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.go_back))
-                    }
-
-                    Button(
-                        onClick = {
-                            navController.navigate("search")
-                        }, modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.search_more_flights))
+                    flightDetails?.let { flight ->
+                        Text(text = "Fecha de vuelo: ${flight.flightDate}")
+                        Text(text = "Aeropuerto de salida: ${flight.departureAirport}")
+                        Text(text = "Aeropuerto de llegada: ${flight.arrivalAirport}")
+                        Text(text = "Nombre de la aerolínea: ${flight.airlineName ?: R.string.unknown}")
+                        Text(text = "Número de vuelo: ${flight.flightNumber ?: R.string.unknown}")
                     }
                 }
+            }) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(), cameraPositionState = cameraPositionState
+                ) {
+                    departureCoordinates?.let {
+                        Marker(
+                            state = MarkerState(position = LatLng(it.latitude, it.longitude)),
+                            title = it.iata,
+                            snippet = it.iata
+                        )
+                    }
+
+                    arrivalCoordinates?.let {
+                        Marker(
+                            state = MarkerState(position = LatLng(it.latitude, it.longitude)),
+                            title = it.iata,
+                            snippet = it.iata
+                        )
+                    }
+
+                    if (departureCoordinates != null && arrivalCoordinates != null) {
+                        Polyline(
+                            points = listOf(
+                                LatLng(
+                                    departureCoordinates.latitude, departureCoordinates.longitude
+                                ), LatLng(arrivalCoordinates.latitude, arrivalCoordinates.longitude)
+                            ), color = Color.Blue, width = 5f
+                        )
+                    }
+                }
+                TopAppBar(title = {}, colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ), navigationIcon = {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(color = MaterialTheme.colorScheme.background)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.go_back)
+                        )
+                    }
+                })
             }
         }
     }
