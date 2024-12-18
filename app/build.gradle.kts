@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -18,12 +20,12 @@ android {
         buildConfigField(
             "String",
             "AVIATIONSTACK_API_KEY",
-            "\"${project.findProperty("AVIATIONSTACK_API_KEY")}\""
+            "\"${gradleLocalProperties(rootDir, providers).getProperty("AVIATIONSTACK_API_KEY")}\""
         )
         resValue(
             "string",
             "GMAPS_API_KEY",
-            "\"${project.findProject("GMAPS_API_KEY")}\""
+            "\"${gradleLocalProperties(rootDir, providers).getProperty("GMAPS_API_KEY")}\""
         )
     }
 
