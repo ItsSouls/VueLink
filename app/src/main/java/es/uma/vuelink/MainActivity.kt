@@ -44,7 +44,6 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -111,8 +110,8 @@ class MainActivity : ComponentActivity() {
                     composable("search") {
                         FlightSearchScreen(navController, flightDao)
                     }
-                    composable("selected") {
-                        SelectedFlightsScreen(navController, flightDao)
+                    composable("saved") {
+                        SavedFlightsScreen(navController, flightDao)
                     }
                     composable("map/{departureAirport}/{arrivalAirport}") { backStackEntry ->
                         val departureAirport =
@@ -257,7 +256,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             BottomAppBar {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Button(
-                        onClick = { navController.navigate("selected") },
+                        onClick = { navController.navigate("saved") },
                     ) {
                         Text(stringResource(R.string.view_saved_flights))
                     }
@@ -371,165 +370,166 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
+fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
     VueLinkTheme {
-        val selectedFlights = remember { mutableStateListOf<FlightEntity>() }
-        val scope = rememberCoroutineScope() // Corutina scope
-        var showDeleteDialog by remember { mutableStateOf(false) } // Estado para el diálogo
-        var flightToDelete by remember { mutableStateOf<FlightEntity?>(null) } // Vuelo seleccionado para borrar
+        val savedFlights = remember { mutableStateListOf<FlightEntity>() }
+        val scope = rememberCoroutineScope()
+        var showDeleteDialog by remember { mutableStateOf(false) }
+        var flightToDelete by remember { mutableStateOf<FlightEntity?>(null) }
+        val listState = rememberLazyListState()
+        val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
         LaunchedEffect(Unit) {
             val flights = flightDao.getAllFlights()
-            selectedFlights.clear()
-            selectedFlights.addAll(flights)
+            savedFlights.clear()
+            savedFlights.addAll(flights)
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.saved_flights),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            if (selectedFlights.isEmpty()) {
-                Text(text = stringResource(R.string.no_saved_flights))
-            } else {
-                LazyColumn(
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                LargeTopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.saved_flights),
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigate("search") }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Localized description"
+                            )
+                        }
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            },
+            content = { innerPadding ->
+                Column(
                     modifier = Modifier
-                        .weight(1f) // Permitir que la lista ocupe una parte proporcional del espacio
-                        .fillMaxWidth()
+                        .fillMaxSize()
+                        .padding(innerPadding)
                 ) {
-                    items(selectedFlights) { flight ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .padding(horizontal = 16.dp),
-                            shape = MaterialTheme.shapes.medium
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = stringResource(
-                                        R.string.flight,
-                                        flight.flightDate ?: stringResource(R.string.not_available)
-                                    ),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                Text(text = stringResource(R.string.status, flight.flightStatus))
-                                Text(
-                                    text = stringResource(
-                                        R.string.departure,
-                                        flight.departureAirport
-                                    )
-                                )
-                                Text(
-                                    text = stringResource(R.string.arrival, flight.arrivalAirport)
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.airline,
-                                        flight.airlineName ?: stringResource(R.string.not_available)
-                                    )
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.flight_number,
-                                        flight.flightNumber
-                                            ?: stringResource(R.string.not_available)
-                                    )
-                                )
 
-                                Row(
+                    if (savedFlights.isEmpty()) {
+                        Text(text = stringResource(R.string.no_saved_flights))
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(), state = listState
+                        ) {
+                            items(savedFlights) { flight ->
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(56.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
+                                        .padding(vertical = 8.dp)
+                                        .padding(horizontal = 16.dp),
+                                    shape = MaterialTheme.shapes.medium
                                 ) {
-                                    // Botón para ver el mapa
-                                    Button(
-                                        onClick = {
-                                            val departureIATA = flight.departureIATA
-                                            val arrivalIATA = flight.arrivalIATA
-                                            navController.navigate("map/$departureIATA/$arrivalIATA")
-                                        }
-                                    ) {
-                                        Text(stringResource(R.string.show_map))
-                                    }
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            text = stringResource(
+                                                R.string.flight,
+                                                flight.flightDate
+                                                    ?: stringResource(R.string.not_available)
+                                            ), style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.status, flight.flightStatus
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.departure, flight.departureAirport
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.arrival, flight.arrivalAirport
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.airline,
+                                                flight.airlineName
+                                                    ?: stringResource(R.string.not_available)
+                                            )
+                                        )
+                                        Text(
+                                            text = stringResource(
+                                                R.string.flight_number,
+                                                flight.flightNumber
+                                                    ?: stringResource(R.string.not_available)
+                                            )
+                                        )
 
-                                    Spacer(modifier = Modifier.width(8.dp)) // Espaciado entre los botones
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Button(onClick = {
+                                                val departureIATA = flight.departureIATA
+                                                val arrivalIATA = flight.arrivalIATA
+                                                navController.navigate("map/$departureIATA/$arrivalIATA")
+                                            }) {
+                                                Text(stringResource(R.string.show_map))
+                                            }
 
-                                    // Botón para mostrar el diálogo de confirmación
-                                    Button(
-                                        onClick = {
-                                            // Asignamos el vuelo a eliminar y mostramos el diálogo
-                                            flightToDelete = flight
-                                            showDeleteDialog = true
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Button(onClick = {
+                                                flightToDelete = flight
+                                                showDeleteDialog = true
+                                            }) {
+                                                Text(stringResource(R.string.remove_flight))
+                                            }
                                         }
-                                    ) {
-                                        Text(stringResource(R.string.remove_flight))
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
+            },
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Botón centrado horizontalmente, consistente con el otro botón
-            Button(
-                onClick = { navController.navigate("search") },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text(stringResource(R.string.return_to_search))
-            }
-        }
-
-        // Diálogo de confirmación para borrar el vuelo
         if (showDeleteDialog && flightToDelete != null) {
-            AlertDialog(
-                onDismissRequest = {
-                    // Cerrar el diálogo si el usuario hace clic fuera de él
+            AlertDialog(onDismissRequest = {
+                showDeleteDialog = false
+            }, title = {
+                Text(stringResource(R.string.confirm_delete))
+            }, text = {
+                Text(
+                    stringResource(
+                        R.string.are_you_sure_delete,
+                        flightToDelete?.flightNumber ?: stringResource(R.string.not_available)
+                    )
+                )
+            }, confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        flightDao.deleteFlight(flightToDelete!!)
+                        savedFlights.remove(flightToDelete)
+                    }
                     showDeleteDialog = false
-                },
-                title = {
-                    Text(stringResource(R.string.confirm_delete))
-                },
-                text = {
-                    Text(stringResource(R.string.are_you_sure_delete, flightToDelete?.flightNumber ?: stringResource(R.string.not_available)))
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            // Eliminar el vuelo de la base de datos y la lista
-                            scope.launch {
-                                flightDao.deleteFlight(flightToDelete!!)
-                                selectedFlights.remove(flightToDelete) // Eliminar de la lista
-                            }
-                            showDeleteDialog = false // Cerrar el diálogo
-                        }
-                    ) {
-                        Text(stringResource(R.string.confirm))
-                    }
-                },
-                dismissButton = {
-                    Button(
-                        onClick = {
-                            // Solo cerrar el diálogo sin hacer nada
-                            showDeleteDialog = false
-                        }
-                    ) {
-                        Text(stringResource(R.string.cancel))
-                    }
+                }) {
+                    Text(stringResource(R.string.confirm))
                 }
-            )
+            }, dismissButton = {
+                Button(onClick = {
+                    showDeleteDialog = false
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            })
         }
     }
 }
@@ -541,66 +541,55 @@ fun fetchFlightsFromApi(): FlightResponse {
         "https://api.aviationstack.com/v1/flights?access_key=${BuildConfig.AVIATIONSTACK_API_KEY}"
     val request = Request.Builder().url(url).build()
 
-    // Intentar realizar la llamada a la API y capturar cualquier excepción
     try {
-        // Realizar la llamada a la API en un hilo de fondo
         val response = client.newCall(request).execute()
 
-        // Verifica si la respuesta fue exitosa
         if (!response.isSuccessful) {
             println("Código de estado: ${response.code}")
             throw Exception("Error en la llamada a la API: ${response.message}")
         }
 
-        // Leer el cuerpo de la respuesta solo una vez
         val responseBody = response.body?.string()
 
-        // Verifica si el cuerpo es nulo o vacío
         if (responseBody.isNullOrEmpty()) {
             throw Exception("Respuesta vacía de la API")
         }
 
-        // Imprime la respuesta de la API para depuración
         println("Respuesta de la API: $responseBody")
 
-        // Deserializar la respuesta
         return Gson().fromJson(responseBody, FlightResponse::class.java)
     } catch (e: Exception) {
-        // Imprimir más detalles si algo sale mal
         println("Error en la llamada a la API: ${e.localizedMessage}")
-        e.printStackTrace()  // Para obtener más detalles sobre el error
+        e.printStackTrace()
         throw e
     }
 }
 
 @Composable
 fun AirportMapScreen(
-    navController: NavHostController,  // Asegúrate de pasar el navController aquí
+    navController: NavHostController,
     departureAirport: String?,
     arrivalAirport: String?,
     airportCoordinatesList: List<AirportCoordinates>,
     flightDetails: FlightEntity?
 ) {
     VueLinkTheme {
-        val defaultLocation = LatLng(40.416775, -3.703790) // Madrid as default
+        val defaultLocation = LatLng(40.416775, -3.703790)
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(defaultLocation, 5f)
         }
 
-        // Buscar las coordenadas de los aeropuertos de salida y destino usando los códigos IATA
         val departureCoordinates = airportCoordinatesList.find { it.iata == departureAirport }
         val arrivalCoordinates = airportCoordinatesList.find { it.iata == arrivalAirport }
 
-        // Calcular el punto medio de la ruta si ambos aeropuertos tienen coordenadas
         val midpoint = if (departureCoordinates != null && arrivalCoordinates != null) {
             val midLat = (departureCoordinates.latitude + arrivalCoordinates.latitude) / 2
             val midLng = (departureCoordinates.longitude + arrivalCoordinates.longitude) / 2
             LatLng(midLat, midLng)
         } else {
-            defaultLocation // Si no se encuentran las coordenadas, usar la ubicación por defecto
+            defaultLocation
         }
 
-        // Calcular la distancia entre los dos aeropuertos y ajustar el zoom
         val distance = if (departureCoordinates != null && arrivalCoordinates != null) {
             calculateDistance(
                 departureCoordinates.latitude,
@@ -612,10 +601,8 @@ fun AirportMapScreen(
             0.0
         }
 
-        // Calcular el zoom basado en la distancia (ajustar este factor según lo necesites)
         val zoomLevel = calculateZoomLevel(distance)
 
-        // Actualizar la posición de la cámara para que se centre en la ruta
         LaunchedEffect(midpoint, zoomLevel) {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(midpoint, zoomLevel)
         }
@@ -623,14 +610,12 @@ fun AirportMapScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Mapa ocupa la mitad superior de la pantalla
             GoogleMap(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f), // Mapa ocupa la mitad de la pantalla
+                    .weight(1f),
                 cameraPositionState = cameraPositionState
             ) {
-                // Dibujar los marcadores para los aeropuertos
                 departureCoordinates?.let {
                     Marker(
                         state = MarkerState(position = LatLng(it.latitude, it.longitude)),
@@ -647,19 +632,16 @@ fun AirportMapScreen(
                     )
                 }
 
-                // Dibujar la polyline si ambos aeropuertos están disponibles
                 if (departureCoordinates != null && arrivalCoordinates != null) {
                     Polyline(
                         points = listOf(
                             LatLng(departureCoordinates.latitude, departureCoordinates.longitude),
                             LatLng(arrivalCoordinates.latitude, arrivalCoordinates.longitude)
-                        ), color = androidx.compose.ui.graphics.Color.Blue, // Color de la línea
-                        width = 5f // Ancho de la línea
+                        ), color = Color.Blue, width = 5f
                     )
                 }
             }
 
-            // Información sobre el vuelo y botones debajo del mapa
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -698,10 +680,8 @@ fun AirportMapScreen(
     }
 }
 
-
-// Función para calcular la distancia entre dos coordenadas geográficas usando la fórmula Haversine
 fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-    val earthRadius = 6371.0 // Radio de la Tierra en kilómetros
+    val earthRadius = 6371.0
 
     val latDistance = Math.toRadians(lat2 - lat1)
     val lonDistance = Math.toRadians(lon2 - lon1)
@@ -712,20 +692,18 @@ fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): D
         ).pow(2.0)
     val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
-    return earthRadius * c // Distancia en kilómetros
+    return earthRadius * c
 }
 
 fun calculateZoomLevel(distance: Double): Float {
     return when {
-        distance < 100 -> 9f  // Muy cerca (alrededor de la ciudad)
-        distance < 400 -> 8f  // Cerca (alrededor de la ciudad)
-        distance < 1000 -> 7f   // Distancia media (entre ciudades o regiones)
-        distance < 1500 -> 6f   // Distancia media (entre ciudades o regiones)
-        distance < 2000 -> 5f   // Para distancias medias
-        distance < 5000 -> 4f   // Distancia larga (países cercanos)
-        distance < 10000 -> 3f // Distancia larga (países cercanos)
-        else -> 1f              // Distancias globales
+        distance < 100 -> 9f
+        distance < 400 -> 8f
+        distance < 1000 -> 7f
+        distance < 1500 -> 6f
+        distance < 2000 -> 5f
+        distance < 5000 -> 4f
+        distance < 10000 -> 3f
+        else -> 1f
     }
 }
-
-
