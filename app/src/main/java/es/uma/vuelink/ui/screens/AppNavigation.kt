@@ -19,7 +19,7 @@ fun AppNavigation(flightDao: FlightDao) {
 
     NavHost(navController = navController, startDestination = "search") {
         composable("search") {
-            FlightSearchScreen(navController)
+            FlightSearchScreen(navController, flightDao)
         }
         composable("saved") {
             SavedFlightsScreen(navController, flightDao)

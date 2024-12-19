@@ -1,5 +1,6 @@
 package es.uma.vuelink.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -72,21 +74,21 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                         text = stringResource(R.string.saved_flights),
                     )
                 },
-                navigationIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(start = 16.dp)
-                    ) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Localized description"
-                            )
+                    navigationIcon = {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Localized description"
+                                )
+                            }
                         }
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )},
+                    },
+                    scrollBehavior = scrollBehavior
+                )},
             content = { innerPadding ->
                 Column(
                     modifier = Modifier
@@ -103,6 +105,12 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                 .fillMaxWidth(), state = listState
                         ) {
                             items(savedFlights) { flight ->
+                                val cardColor = when (flight.flightStatus) {
+                                    "cancelled" -> Color.Red
+                                    "active" -> Color.Green
+                                    else -> MaterialTheme.colorScheme.surface
+                                }
+
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -110,66 +118,72 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                         .padding(horizontal = 16.dp),
                                     shape = MaterialTheme.shapes.medium
                                 ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            text = stringResource(
-                                                R.string.flight_number,
-                                                flight.flightNumber
-                                                    ?: stringResource(R.string.not_available)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(cardColor.copy(alpha = 0.3f))  // Aplicar el fondo con opacidad
+                                    ) {
+                                        Column(modifier = Modifier.padding(16.dp)) {
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.flight_number,
+                                                    flight.flightNumber
+                                                        ?: stringResource(R.string.not_available)
+                                                )
                                             )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.airline,
-                                                flight.airlineName
-                                                    ?: stringResource(R.string.not_available)
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.airline,
+                                                    flight.airlineName
+                                                        ?: stringResource(R.string.not_available)
+                                                )
                                             )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.flight_date,
-                                                flight.flightDate
-                                                    ?: stringResource(R.string.not_available)
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.flight_date,
+                                                    flight.flightDate
+                                                        ?: stringResource(R.string.not_available)
+                                                )
                                             )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.status, flight.flightStatus
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.status, flight.flightStatus
+                                                )
                                             )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.departure, flight.departureAirport
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.departure, flight.departureAirport
+                                                )
                                             )
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.arrival, flight.arrivalAirport
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.arrival, flight.arrivalAirport
+                                                )
                                             )
-                                        )
 
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(56.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center
-                                        ) {
-                                            Button(onClick = {
-                                                val departureIATA = flight.departureIATA
-                                                val arrivalIATA = flight.arrivalIATA
-                                                navController.navigate("map/$departureIATA/$arrivalIATA")
-                                            }) {
-                                                Text(stringResource(R.string.show_map))
-                                            }
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(56.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.Center
+                                            ) {
+                                                Button(onClick = {
+                                                    val departureIATA = flight.departureIATA
+                                                    val arrivalIATA = flight.arrivalIATA
+                                                    navController.navigate("map/$departureIATA/$arrivalIATA")
+                                                }) {
+                                                    Text(stringResource(R.string.show_map))
+                                                }
 
-                                            Spacer(modifier = Modifier.width(8.dp))
+                                                Spacer(modifier = Modifier.width(8.dp))
 
-                                            Button(onClick = {
-                                                flightToDelete = flight
-                                                showDeleteDialog = true
-                                            }) {
-                                                Text(stringResource(R.string.remove_flight))
+                                                Button(onClick = {
+                                                    flightToDelete = flight
+                                                    showDeleteDialog = true
+                                                }) {
+                                                    Text(stringResource(R.string.remove_flight))
+                                                }
                                             }
                                         }
                                     }

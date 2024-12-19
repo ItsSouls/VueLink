@@ -1,6 +1,7 @@
 package es.uma.vuelink.ui.screens
 
 import android.app.DatePickerDialog
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import es.uma.vuelink.R
+import es.uma.vuelink.data.FlightDao
+import es.uma.vuelink.data.FlightEntity
 import es.uma.vuelink.model.Flight
 import es.uma.vuelink.ui.components.fetchFlightsFromApi
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +32,7 @@ import kotlinx.coroutines.withContext
 import java.util.*
 
 @Composable
-fun FlightSearchScreen(navController: NavHostController) {
+fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     var searchFlightNumber by remember { mutableStateOf("") }
     var searchDepartureAirport by remember { mutableStateOf("") }
     var searchArrivalAirport by remember { mutableStateOf("") }
@@ -217,7 +220,43 @@ fun FlightSearchScreen(navController: NavHostController) {
                                     )
                                 }
                                 Button(
-                                    onClick = { /* Save logic */ },
+                                    onClick = {
+                                        val flightEntity = FlightEntity(
+                                            flightDate = flight.flightDate,
+                                            flightStatus = flight.flightStatus,
+                                            departureAirport = flight.departure.airport,
+                                            arrivalAirport = flight.arrival.airport,
+                                            departureIATA = flight.departure.iata,
+                                            arrivalIATA = flight.arrival.iata,
+                                            airlineName = flight.airline.name,
+                                            flightNumber = flight.flight.iata
+                                        )
+
+                                        scope.launch(Dispatchers.IO) {
+                                            val existingFlight = flightDao.getFlightDetails(
+                                                flight.departure.iata, flight.arrival.iata
+                                            )
+
+                                            if (existingFlight == null) {
+                                                flightDao.insertFlight(flightEntity)
+                                                withContext(Dispatchers.Main) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        context.getString(R.string.flight_saved_successfully),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            } else {
+                                                withContext(Dispatchers.Main) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        context.getString(R.string.flight_already_saved),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+                                        }
+                                    },
                                     modifier = Modifier.padding(start = 16.dp)
                                 ) {
                                     Text(stringResource(R.string.save))
