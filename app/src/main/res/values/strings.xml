@@ -21,7 +21,7 @@
     <string name="search_more_flights">Search more flights</string>
     <string name="no_saved_flights">No saved flights</string>
     <string name="return_to_search">Return to search</string>
-    <string name="flight_date">Flight date: </string>
+    <string name="flight_date">Flight date: %1$s</string>
     <string name="departure_airport">Departure Airport: %1$s</string>
     <string name="arrival_airport">Arrival Airport: %1$s</string>
     <string name="airline_name">Airline Name: %1$s</string>
@@ -32,4 +32,6 @@
     <string name="are_you_sure_delete">¿Are you sure you want to delete the flight %1$s?</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
+    <string name="select_date">Selected Date</string>
+    <string name="choose_date">Choose Date</string>
 </resources>

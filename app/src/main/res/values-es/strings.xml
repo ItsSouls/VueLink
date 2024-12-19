@@ -33,4 +33,6 @@
     <string name="are_you_sure_delete">¿Estas seguro de que quieres Eliminar el vuelo %1$s?</string>
     <string name="confirm">Confirmar</string>
     <string name="cancel">Cancelar</string>
+    <string name="select_date">Fecha Seleccionada</string>
+    <string name="choose_date">Elige Fecha</string>
 </resources>
