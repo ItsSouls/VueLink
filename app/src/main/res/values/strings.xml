@@ -5,12 +5,11 @@
     <string name="search">Search</string>
     <string name="search_flights">Search flights</string>
     <string name="loading_flights">Loading flights…</string>
-    <string name="flight_format">Flight: %1$s</string>
+    <string name="flight_number_format">Flight: %1$s</string>
     <string name="status_format">Status: %1$s</string>
     <string name="departure_format">Departure: %1$s</string>
     <string name="arrival_format">Arrival: %1$s</string>
     <string name="airline_format">Airline: %1$s</string>
-    <string name="flight_number_format">Flight number: %1$s</string>
     <string name="not_available">Not available</string>
     <string name="flight_saved_successfully">Flight saved successfully</string>
     <string name="flight_already_saved">"Flight already saved"</string>
@@ -21,7 +20,7 @@
     <string name="search_more_flights">Search more flights</string>
     <string name="no_saved_flights">No saved flights</string>
     <string name="return_to_search">Return to search</string>
-    <string name="flight_date_format">Flight date: %1$s</string>
+    <string name="flight_date_format">Date: %1$s</string>
     <string name="departure_airport_format">Departure Airport: %1$s</string>
     <string name="arrival_airport_format">Arrival Airport: %1$s</string>
     <string name="airline_name_format">Airline Name: %1$s</string>
@@ -36,4 +35,15 @@
     <string name="arrival">Arrival</string>
     <string name="departure">Departure</string>
     <string name="ok">OK</string>
+    <string name="flight_details">Flight details</string>
+    <string name="flight_cancelled_alert">Cancelled flights</string>
+    <string name="location_format">Location: %1$s</string>
+    <string name="temperature_format">Temperature: %1$s °C</string>
+    <string name="description_format">Description: %1$s</string>
+    <string name="close">Close</string>
+    <string name="weather">Weather</string>
+    <plurals name="flight_cancelled_message">
+        <item quantity="one">1 flight</item>
+        <item quantity="many">%1$s flights</item>
+    </plurals>
 </resources>

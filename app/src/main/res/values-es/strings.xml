@@ -6,12 +6,11 @@
     <string name="search">Buscar</string>
     <string name="search_flights">Buscar vuelos</string>
     <string name="loading_flights">Cargando vuelos…</string>
-    <string name="flight_format">Vuelo: %1$s</string>
+    <string name="flight_number_format">Vuelo: %1$s</string>
     <string name="status_format">Estado: %1$s</string>
     <string name="departure_format">Salida: %1$s</string>
     <string name="arrival_format">Llegada: %1$s</string>
     <string name="airline_format">Aerolínea: %1$s</string>
-    <string name="flight_number_format">Número de vuelo: %1$s</string>
     <string name="not_available">No disponible</string>
     <string name="flight_saved_successfully">Vuelo guardado exitosamente</string>
     <string name="flight_already_saved">"Este vuelo ya ha sido seleccionado"</string>
@@ -22,7 +21,7 @@
     <string name="search_more_flights">Buscar más vuelos</string>
     <string name="no_saved_flights">No hay vuelos guardados</string>
     <string name="return_to_search">Volver a buscar</string>
-    <string name="flight_date_format">Fecha de vuelo: %1$s</string>
+    <string name="flight_date_format">Fecha %1$s</string>
     <string name="departure_airport_format">Aeropuerto de salida: %1$s</string>
     <string name="arrival_airport_format">Aeropuerto de llegada: %1$s</string>
     <string name="airline_name_format">Nombre de la aerolínea: %1$s</string>
@@ -37,4 +36,15 @@
     <string name="arrival">Llegada</string>
     <string name="departure">Salida</string>
     <string name="ok">Aceptar</string>
+    <string name="flight_details">Detalles del vuelo</string>
+    <string name="flight_cancelled_alert">Vuelos cancelados</string>
+    <string name="location_format">Ubicación: %1$s</string>
+    <string name="temperature_format">Temperatura: %1$s °C</string>
+    <string name="description_format">Descripción: %1$s</string>
+    <string name="close">Cerrar</string>
+    <string name="weather">Clima</string>
+    <plurals name="flight_cancelled_message">
+        <item quantity="one">1 vuelo</item>
+        <item quantity="many">%1$s vuelos</item>
+    </plurals>
 </resources>

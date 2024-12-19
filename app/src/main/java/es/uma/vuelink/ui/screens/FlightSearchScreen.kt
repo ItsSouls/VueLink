@@ -2,7 +2,21 @@ package es.uma.vuelink.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,11 +26,28 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.FlightLand
 import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,7 +66,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +113,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
         errorMessage = null
         scope.launch {
             try {
-                val flightResponse = withContext(Dispatchers.IO) { fetchFlightsFromApi() }
+                val flightResponse = withContext(Dispatchers.IO) { fetchFlights() }
                 flights = flightResponse.data.filter { flight ->
                     val matchesFlightNumber =
                         searchFlightNumber.isBlank() || flight.flight.iata?.lowercase()
@@ -102,8 +134,14 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
         }
     }
 
+    val listContentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues()
+
     Scaffold(topBar = {
-        Column(Modifier.padding(16.dp)) {
+        Column(
+            Modifier
+                .padding(listContentPadding)
+                .padding(16.dp)
+        ) {
             // Search by Flight Number
             OutlinedTextField(value = searchFlightNumber,
                 onValueChange = { searchFlightNumber = it },
@@ -123,9 +161,13 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 OutlinedTextField(value = searchDepartureAirport,
                     onValueChange = { searchDepartureAirport = it },
                     label = { Text(stringResource(R.string.departure)) },
-                    leadingIcon = { Icon(Icons.Filled.FlightTakeoff, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.FlightTakeoff, contentDescription = null
+                        )
+                    },
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp) // Bordes redondeados
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 // Search by Arrival Airport
@@ -134,7 +176,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                     label = { Text(stringResource(R.string.arrival)) },
                     leadingIcon = { Icon(Icons.Filled.FlightLand, contentDescription = null) },
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp) // Bordes redondeados
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
 
@@ -151,7 +193,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                     trailingIcon = {
                         Icon(Icons.Default.CalendarToday,
                             contentDescription = stringResource(R.string.choose_date),
-                            modifier = Modifier.clickable { openDialog.value = !openDialog.value })
+                            modifier = Modifier.clickable {
+                                openDialog.value = !openDialog.value
+                            })
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp) // Bordes redondeados
@@ -186,7 +230,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 errorMessage?.let {
                     Text(
                         text = it,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
@@ -213,7 +257,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                 ) {
                                     Text(
                                         text = stringResource(
-                                            R.string.flight_format,
+                                            R.string.flight_number_format,
                                             flight.flight.iata ?: R.string.unknown
                                         ), style = MaterialTheme.typography.bodyMedium
                                     )
@@ -284,7 +328,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     }
 }
 
-fun fetchFlightsFromApi(): FlightResponse {
+fun fetchFlights(): FlightResponse {
     val client = OkHttpClient()
     val url =
         "https://api.aviationstack.com/v1/flights?access_key=${BuildConfig.AVIATIONSTACK_API_KEY}"

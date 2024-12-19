@@ -27,6 +27,11 @@ android {
             "GMAPS_API_KEY",
             "\"${gradleLocalProperties(rootDir, providers).getProperty("GMAPS_API_KEY")}\""
         )
+        buildConfigField(
+            "String",
+            "OPENWEATHER_API_KEY",
+            "\"${gradleLocalProperties(rootDir, providers).getProperty("OPENWEATHER_API_KEY")}\""
+        )
     }
 
     buildTypes {
