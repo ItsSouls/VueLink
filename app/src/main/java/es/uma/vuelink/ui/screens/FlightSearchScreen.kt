@@ -1,6 +1,5 @@
 package es.uma.vuelink.ui.screens
 
-import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,8 +28,10 @@ import es.uma.vuelink.ui.components.fetchFlightsFromApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     var searchFlightNumber by remember { mutableStateOf("") }
@@ -44,31 +45,45 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val calendar = Calendar.getInstance()
-    val datePicker = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            selectedDate = "$year-${month + 1}-$dayOfMonth"
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
+    val datePickerState = rememberDatePickerState()
+    val openDialog = remember { mutableStateOf(false) }
+    if (openDialog.value) {
+        DatePickerDialog(onDismissRequest = {
+            openDialog.value = false
+        }, confirmButton = {
+            TextButton(onClick = {
+                openDialog.value = false
+                selectedDate = datePickerState.selectedDateMillis?.convertMillisToDate() ?: ""
+            }) {
+                Text("OK")
+            }
+        }, dismissButton = {
+            TextButton(onClick = {
+                openDialog.value = false
+            }) {
+                Text("CANCEL")
+            }
+        }) {
+            DatePicker(
+                state = datePickerState
+            )
+        }
+    }
 
     fun launchSearch() {
         loading = true
         errorMessage = null
         scope.launch {
             try {
-
                 val flightResponse = withContext(Dispatchers.IO) { fetchFlightsFromApi() }
                 flights = flightResponse.data.filter { flight ->
-                    val matchesFlightNumber = searchFlightNumber.isBlank() ||
-                            flight.flight.iata?.lowercase()?.contains(searchFlightNumber.lowercase()) == true
-                    val matchesDepartureAirport = searchDepartureAirport.isBlank() ||
-                            flight.departure.airport.lowercase() == searchDepartureAirport.lowercase()
-                    val matchesArrivalAirport = searchArrivalAirport.isBlank() ||
-                            flight.arrival.airport.lowercase() == searchArrivalAirport.lowercase()
+                    val matchesFlightNumber =
+                        searchFlightNumber.isBlank() || flight.flight.iata?.lowercase()
+                            ?.contains(searchFlightNumber.lowercase()) == true
+                    val matchesDepartureAirport =
+                        searchDepartureAirport.isBlank() || flight.departure.airport.lowercase() == searchDepartureAirport.lowercase()
+                    val matchesArrivalAirport =
+                        searchArrivalAirport.isBlank() || flight.arrival.airport.lowercase() == searchArrivalAirport.lowercase()
                     val matchesDate = selectedDate.isBlank() || flight.flightDate == selectedDate
                     matchesFlightNumber && matchesDepartureAirport && matchesArrivalAirport && matchesDate
                 }
@@ -81,91 +96,79 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column(Modifier.padding(16.dp)) {
-                // Search by Flight Number
-                OutlinedTextField(
-                    value = searchFlightNumber,
-                    onValueChange = { searchFlightNumber = it },
-                    label = { Text(stringResource(R.string.search_flight_number)) },
+    Scaffold(topBar = {
+        Column(Modifier.padding(16.dp)) {
+            // Search by Flight Number
+            OutlinedTextField(value = searchFlightNumber,
+                onValueChange = { searchFlightNumber = it },
+                label = { Text(stringResource(R.string.search_flight_number)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Row for Departure and Arrival Airports
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Search by Departure Airport
+                OutlinedTextField(value = searchDepartureAirport,
+                    onValueChange = { searchDepartureAirport = it },
+                    label = { Text("Salida") },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp) // Bordes redondeados
                 )
-                Spacer(modifier = Modifier.height(8.dp))
 
-                // Row for Departure and Arrival Airports
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Search by Departure Airport
-                    OutlinedTextField(
-                        value = searchDepartureAirport,
-                        onValueChange = { searchDepartureAirport = it },
-                        label = { Text("Salida") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp) // Bordes redondeados
-                    )
-
-                    // Search by Arrival Airport
-                    OutlinedTextField(
-                        value = searchArrivalAirport,
-                        onValueChange = { searchArrivalAirport = it },
-                        label = { Text("Llegada") },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp) // Bordes redondeados
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Row for Date Selection
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = selectedDate,
-                        onValueChange = {},
-                        label = { Text(stringResource(R.string.select_date)) },
-                        readOnly = true,
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.CalendarToday,
-                                contentDescription = stringResource(R.string.choose_date),
-                                modifier = Modifier.clickable { datePicker.show() }
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp) // Bordes redondeados
-                    )
-                }
-
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Search Button
-                Button(
-                    onClick = { launchSearch() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.search_flights))
-                }
+                // Search by Arrival Airport
+                OutlinedTextField(value = searchArrivalAirport,
+                    onValueChange = { searchArrivalAirport = it },
+                    label = { Text("Llegada") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp) // Bordes redondeados
+                )
             }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { navController.navigate("saved") }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.AirplaneTicket,
-                    contentDescription = stringResource(R.string.view_saved_flights)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Row for Date Selection
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(value = selectedDate,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.select_date)) },
+                    readOnly = true,
+                    trailingIcon = {
+                        Icon(Icons.Default.CalendarToday,
+                            contentDescription = stringResource(R.string.choose_date),
+                            modifier = Modifier.clickable { openDialog.value = !openDialog.value })
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp) // Bordes redondeados
                 )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Search Button
+            Button(
+                onClick = { launchSearch() }, modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.search_flights))
             }
         }
-    ) { innerPadding ->
+    }, floatingActionButton = {
+        FloatingActionButton(onClick = { navController.navigate("saved") }) {
+            Icon(
+                Icons.AutoMirrored.Filled.AirplaneTicket,
+                contentDescription = stringResource(R.string.view_saved_flights)
+            )
+        }
+    }) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -207,13 +210,17 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                         style = MaterialTheme.typography.bodyMedium
                                     )
                                     Text(
-                                        text = stringResource(R.string.departure, flight.departure.airport),
+                                        text = stringResource(
+                                            R.string.departure, flight.departure.airport
+                                        ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                     Text(
-                                        text = stringResource(R.string.arrival, flight.arrival.airport),
+                                        text = stringResource(
+                                            R.string.arrival, flight.arrival.airport
+                                        ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         style = MaterialTheme.typography.bodySmall
@@ -256,8 +263,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                                 }
                                             }
                                         }
-                                    },
-                                    modifier = Modifier.padding(start = 16.dp)
+                                    }, modifier = Modifier.padding(start = 16.dp)
                                 ) {
                                     Text(stringResource(R.string.save))
                                 }
@@ -268,4 +274,15 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             }
         }
     }
+}
+
+fun Long.convertMillisToDate(): String {
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = this@convertMillisToDate
+        val zoneOffset = get(Calendar.ZONE_OFFSET)
+        val dstOffset = get(Calendar.DST_OFFSET)
+        add(Calendar.MILLISECOND, -(zoneOffset + dstOffset))
+    }
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    return sdf.format(calendar.time)
 }

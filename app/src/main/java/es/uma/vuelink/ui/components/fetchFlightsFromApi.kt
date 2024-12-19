@@ -6,9 +6,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import es.uma.vuelink.BuildConfig
 
-
-
-
 fun fetchFlightsFromApi(): FlightResponse {
     val client = OkHttpClient()
     val url =

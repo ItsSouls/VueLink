@@ -12,7 +12,6 @@ import es.uma.vuelink.data.FlightDao
 import es.uma.vuelink.data.FlightEntity
 import es.uma.vuelink.data.loadAirportCoordinates
 
-
 @Composable
 fun AppNavigation(flightDao: FlightDao) {
     val navController = rememberNavController()
@@ -25,8 +24,7 @@ fun AppNavigation(flightDao: FlightDao) {
             SavedFlightsScreen(navController, flightDao)
         }
         composable("map/{departureAirport}/{arrivalAirport}") { backStackEntry ->
-            val departureAirport =
-                backStackEntry.arguments?.getString("departureAirport")
+            val departureAirport = backStackEntry.arguments?.getString("departureAirport")
             val arrivalAirport = backStackEntry.arguments?.getString("arrivalAirport")
 
             val airportCoordinatesList = loadAirportCoordinates(LocalContext.current)

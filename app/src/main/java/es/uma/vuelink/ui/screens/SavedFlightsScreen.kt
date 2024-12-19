@@ -73,22 +73,20 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                     Text(
                         text = stringResource(R.string.saved_flights),
                     )
-                },
-                    navigationIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 16.dp)
-                        ) {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Localized description"
-                                )
-                            }
+                }, navigationIcon = {
+                    Box(
+                        modifier = Modifier.padding(start = 16.dp)
+                    ) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Localized description"
+                            )
                         }
-                    },
-                    scrollBehavior = scrollBehavior
-                )},
+                    }
+                }, scrollBehavior = scrollBehavior
+                )
+            },
             content = { innerPadding ->
                 Column(
                     modifier = Modifier

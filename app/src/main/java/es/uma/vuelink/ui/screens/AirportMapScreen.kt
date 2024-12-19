@@ -84,8 +84,7 @@ fun AirportMapScreen(
             cameraPositionState.position = CameraPosition.fromLatLngZoom(midpoint, zoomLevel)
         }
 
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
+        BottomSheetScaffold(scaffoldState = scaffoldState,
             sheetPeekHeight = 128.dp,
             sheetContent = {
                 Column(
@@ -94,8 +93,17 @@ fun AirportMapScreen(
                         .padding(16.dp)
                 ) {
                     flightDetails?.let { flight ->
-                        Text(text = stringResource(R.string.flight_date, flight.flightDate ?: stringResource(R.string.unknown)))
-                        Text(text = stringResource(R.string.departure_airport, flight.departureAirport))
+                        Text(
+                            text = stringResource(
+                                R.string.flight_date,
+                                flight.flightDate ?: stringResource(R.string.unknown)
+                            )
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.departure_airport, flight.departureAirport
+                            )
+                        )
                         Text(text = stringResource(R.string.arrival_airport, flight.arrivalAirport))
                         Text(
                             text = stringResource(
@@ -108,7 +116,8 @@ fun AirportMapScreen(
                                 R.string.flight_number,
                                 flight.flightNumber ?: stringResource(R.string.unknown)
                             )
-                        )}
+                        )
+                    }
                 }
             }) { innerPadding ->
             Box(
@@ -145,30 +154,25 @@ fun AirportMapScreen(
                         )
                     }
                 }
-                TopAppBar(
-                    title = {},
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent
-                    ),
-                    navigationIcon = {
-                        Box(
+                TopAppBar(title = {}, colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ), navigationIcon = {
+                    Box(
+                        modifier = Modifier.padding(start = 16.dp)
+                    ) {
+                        IconButton(
+                            onClick = { navController.popBackStack() },
                             modifier = Modifier
-                                .padding(start = 16.dp)
+                                .clip(CircleShape)
+                                .background(color = MaterialTheme.colorScheme.background)
                         ) {
-                            IconButton(
-                                onClick = { navController.popBackStack() },
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(color = MaterialTheme.colorScheme.background)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(R.string.go_back)
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.go_back)
+                            )
                         }
                     }
-                )
+                })
 
             }
         }
