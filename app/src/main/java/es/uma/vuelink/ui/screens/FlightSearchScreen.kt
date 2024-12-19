@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.AirplaneTicket
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.FlightLand
+import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -55,13 +57,13 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 openDialog.value = false
                 selectedDate = datePickerState.selectedDateMillis?.convertMillisToDate() ?: ""
             }) {
-                Text("OK")
+                Text(stringResource(R.string.ok))
             }
         }, dismissButton = {
             TextButton(onClick = {
                 openDialog.value = false
             }) {
-                Text("CANCEL")
+                Text(stringResource(R.string.cancel))
             }
         }) {
             DatePicker(
@@ -116,8 +118,8 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 // Search by Departure Airport
                 OutlinedTextField(value = searchDepartureAirport,
                     onValueChange = { searchDepartureAirport = it },
-                    label = { Text("Salida") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    label = { Text(stringResource(R.string.departure)) },
+                    leadingIcon = { Icon(Icons.Filled.FlightTakeoff, contentDescription = null) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp) // Bordes redondeados
                 )
@@ -125,8 +127,8 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 // Search by Arrival Airport
                 OutlinedTextField(value = searchArrivalAirport,
                     onValueChange = { searchArrivalAirport = it },
-                    label = { Text("Llegada") },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    label = { Text(stringResource(R.string.arrival)) },
+                    leadingIcon = { Icon(Icons.Filled.FlightLand, contentDescription = null) },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp) // Bordes redondeados
                 )
@@ -140,7 +142,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
             ) {
                 OutlinedTextField(value = selectedDate,
                     onValueChange = {},
-                    label = { Text(stringResource(R.string.select_date)) },
+                    label = { Text(stringResource(R.string.date)) },
                     readOnly = true,
                     trailingIcon = {
                         Icon(Icons.Default.CalendarToday,
@@ -206,12 +208,14 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text(
-                                        text = stringResource(R.string.flight, flight.flightDate),
-                                        style = MaterialTheme.typography.bodyMedium
+                                        text = stringResource(
+                                            R.string.flight_format,
+                                            flight.flight.iata ?: R.string.unknown
+                                        ), style = MaterialTheme.typography.bodyMedium
                                     )
                                     Text(
                                         text = stringResource(
-                                            R.string.departure, flight.departure.airport
+                                            R.string.departure_format, flight.departure.airport
                                         ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -219,7 +223,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                     )
                                     Text(
                                         text = stringResource(
-                                            R.string.arrival, flight.arrival.airport
+                                            R.string.arrival_format, flight.arrival.airport
                                         ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,

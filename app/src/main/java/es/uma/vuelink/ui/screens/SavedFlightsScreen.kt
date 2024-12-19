@@ -74,15 +74,11 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                         text = stringResource(R.string.saved_flights),
                     )
                 }, navigationIcon = {
-                    Box(
-                        modifier = Modifier.padding(start = 16.dp)
-                    ) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Localized description"
-                            )
-                        }
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Localized description"
+                        )
                     }
                 }, scrollBehavior = scrollBehavior
                 )
@@ -124,38 +120,38 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                         Column(modifier = Modifier.padding(16.dp)) {
                                             Text(
                                                 text = stringResource(
-                                                    R.string.flight_number,
+                                                    R.string.flight_number_format,
                                                     flight.flightNumber
                                                         ?: stringResource(R.string.not_available)
                                                 )
                                             )
                                             Text(
                                                 text = stringResource(
-                                                    R.string.airline,
+                                                    R.string.airline_format,
                                                     flight.airlineName
                                                         ?: stringResource(R.string.not_available)
                                                 )
                                             )
                                             Text(
                                                 text = stringResource(
-                                                    R.string.flight_date,
+                                                    R.string.flight_date_format,
                                                     flight.flightDate
                                                         ?: stringResource(R.string.not_available)
                                                 )
                                             )
                                             Text(
                                                 text = stringResource(
-                                                    R.string.status, flight.flightStatus
+                                                    R.string.status_format, flight.flightStatus
                                                 )
                                             )
                                             Text(
                                                 text = stringResource(
-                                                    R.string.departure, flight.departureAirport
+                                                    R.string.departure_format, flight.departureAirport
                                                 )
                                             )
                                             Text(
                                                 text = stringResource(
-                                                    R.string.arrival, flight.arrivalAirport
+                                                    R.string.arrival_format, flight.arrivalAirport
                                                 )
                                             )
 
@@ -180,7 +176,7 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
                                                     flightToDelete = flight
                                                     showDeleteDialog = true
                                                 }) {
-                                                    Text(stringResource(R.string.remove_flight))
+                                                    Text(stringResource(R.string.delete))
                                                 }
                                             }
                                         }
@@ -197,7 +193,7 @@ fun SavedFlightsScreen(navController: NavHostController, flightDao: FlightDao) {
             AlertDialog(onDismissRequest = {
                 showDeleteDialog = false
             }, title = {
-                Text(stringResource(R.string.confirm_delete))
+                Text(stringResource(R.string.delete))
             }, text = {
                 Text(
                     stringResource(
