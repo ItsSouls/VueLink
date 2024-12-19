@@ -22,14 +22,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.google.gson.Gson
+import es.uma.vuelink.BuildConfig
 import es.uma.vuelink.R
 import es.uma.vuelink.data.FlightDao
 import es.uma.vuelink.data.FlightEntity
 import es.uma.vuelink.model.Flight
-import es.uma.vuelink.ui.components.fetchFlightsFromApi
+import es.uma.vuelink.model.FlightResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -277,6 +281,36 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                 }
             }
         }
+    }
+}
+
+fun fetchFlightsFromApi(): FlightResponse {
+    val client = OkHttpClient()
+    val url =
+        "https://api.aviationstack.com/v1/flights?access_key=${BuildConfig.AVIATIONSTACK_API_KEY}"
+    val request = Request.Builder().url(url).build()
+
+    try {
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful) {
+            println("Código de estado: ${response.code}")
+            throw Exception("Error en la llamada a la API: ${response.message}")
+        }
+
+        val responseBody = response.body?.string()
+
+        if (responseBody.isNullOrEmpty()) {
+            throw Exception("Respuesta vacía de la API")
+        }
+
+        println("Respuesta de la API: $responseBody")
+
+        return Gson().fromJson(responseBody, FlightResponse::class.java)
+    } catch (e: Exception) {
+        println("Error en la llamada a la API: ${e.localizedMessage}")
+        e.printStackTrace()
+        throw e
     }
 }
 

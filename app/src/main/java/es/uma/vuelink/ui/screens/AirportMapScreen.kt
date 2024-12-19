@@ -34,11 +34,14 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import es.uma.vuelink.R
-import es.uma.vuelink.ui.components.calculateZoomLevel
 import es.uma.vuelink.data.AirportCoordinates
 import es.uma.vuelink.data.FlightEntity
-import es.uma.vuelink.ui.components.calculateDistance
 import es.uma.vuelink.ui.theme.VueLinkTheme
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -172,5 +175,33 @@ fun AirportMapScreen(
 
             }
         }
+    }
+}
+
+fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val earthRadius = 6371.0
+
+    val latDistance = Math.toRadians(lat2 - lat1)
+    val lonDistance = Math.toRadians(lon2 - lon1)
+
+    val a =
+        sin(latDistance / 2).pow(2.0) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(
+            lonDistance / 2
+        ).pow(2.0)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    return earthRadius * c
+}
+
+fun calculateZoomLevel(distance: Double): Float {
+    return when {
+        distance < 100 -> 9f
+        distance < 400 -> 8f
+        distance < 1000 -> 7f
+        distance < 1500 -> 6f
+        distance < 2000 -> 5f
+        distance < 5000 -> 4f
+        distance < 10000 -> 3f
+        else -> 1f
     }
 }
