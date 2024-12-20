@@ -30,17 +30,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,16 +59,13 @@ import es.uma.vuelink.data.FlightDao
 import es.uma.vuelink.data.FlightEntity
 import es.uma.vuelink.model.Flight
 import es.uma.vuelink.model.FlightResponse
+import es.uma.vuelink.ui.components.CalendarDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, airportDao: AirportDao) {
     var searchFlightNumber by remember { mutableStateOf("") }
@@ -86,32 +78,16 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    val datePickerState = rememberDatePickerState()
     val openDialog = remember { mutableStateOf(false) }
 
-
     if (openDialog.value) {
-        DatePickerDialog(onDismissRequest = {
-            openDialog.value = false
-        }, confirmButton = {
-            TextButton(onClick = {
+        CalendarDialog(
+            onDismiss = { openDialog.value = false },
+            onDateSelected = {
+                selectedDate = it
                 openDialog.value = false
-                selectedDate = datePickerState.selectedDateMillis?.convertMillisToDate() ?: ""
-            }) {
-                Text(stringResource(R.string.ok))
             }
-        }, dismissButton = {
-            TextButton(onClick = {
-                openDialog.value = false
-            }) {
-                Text(stringResource(R.string.cancel))
-            }
-        }) {
-            DatePicker(
-                state = datePickerState
-            )
-        }
+        )
     }
 
     fun launchSearch() {
@@ -417,15 +393,4 @@ fun fetchFlights(): FlightResponse {
         e.printStackTrace()
         throw e
     }
-}
-
-fun Long.convertMillisToDate(): String {
-    val calendar = Calendar.getInstance().apply {
-        timeInMillis = this@convertMillisToDate
-        val zoneOffset = get(Calendar.ZONE_OFFSET)
-        val dstOffset = get(Calendar.DST_OFFSET)
-        add(Calendar.MILLISECOND, -(zoneOffset + dstOffset))
-    }
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
-    return sdf.format(calendar.time)
 }
