@@ -8,17 +8,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import es.uma.vuelink.data.AirportDao
 import es.uma.vuelink.data.FlightDao
-import es.uma.vuelink.data.FlightEntity
+import es.uma.vuelink.data.FlightWithAirports
 import es.uma.vuelink.data.loadAirportCoordinates
 
 @Composable
-fun AppNavigation(flightDao: FlightDao) {
+fun AppNavigation(flightDao: FlightDao, airportDao: AirportDao) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "search") {
         composable("search") {
-            FlightSearchScreen(navController, flightDao)
+            FlightSearchScreen(navController, flightDao, airportDao)
         }
         composable("saved") {
             SavedFlightsScreen(navController, flightDao)
@@ -29,21 +30,19 @@ fun AppNavigation(flightDao: FlightDao) {
 
             val airportCoordinatesList = loadAirportCoordinates(LocalContext.current)
 
-            val flightDetails = remember { mutableStateOf<FlightEntity?>(null) }
+            val flightWithAirports = remember { mutableStateOf<FlightWithAirports?>(null) }
 
             LaunchedEffect(departureAirport, arrivalAirport) {
                 if (!departureAirport.isNullOrEmpty() && !arrivalAirport.isNullOrEmpty()) {
-                    flightDetails.value =
-                        flightDao.getFlightDetails(departureAirport, arrivalAirport)
+                    flightWithAirports.value =
+                        flightDao.getFlightWithAirportsByIata(departureAirport, arrivalAirport)
                 }
             }
 
             AirportMapScreen(
                 navController,
-                departureAirport,
-                arrivalAirport,
-                airportCoordinatesList,
-                flightDetails.value
+                flightWithAirports.value,
+                airportCoordinatesList
             )
         }
     }

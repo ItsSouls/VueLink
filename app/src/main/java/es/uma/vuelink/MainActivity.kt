@@ -15,10 +15,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val flightDao = AppDatabase.getInstance(this).flightDao()
+        val airportDao = AppDatabase.getInstance(this).airportDao()
 
         setContent {
             VueLinkTheme {
-                AppNavigation(flightDao)
+                AppNavigation(flightDao, airportDao)
             }
         }
     }

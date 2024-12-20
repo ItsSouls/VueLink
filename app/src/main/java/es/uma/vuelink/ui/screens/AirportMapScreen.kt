@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetScaffold
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,11 +20,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -35,25 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.gson.Gson
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
-import es.uma.vuelink.BuildConfig
 import es.uma.vuelink.R
 import es.uma.vuelink.data.AirportCoordinates
-import es.uma.vuelink.data.FlightEntity
-import es.uma.vuelink.model.WeatherInfo
-import es.uma.vuelink.model.WeatherResponse
+import es.uma.vuelink.data.FlightWithAirports
+import es.uma.vuelink.ui.components.WeatherMarkerInfo
 import es.uma.vuelink.ui.theme.VueLinkTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -64,10 +46,8 @@ import kotlin.math.sqrt
 @Composable
 fun AirportMapScreen(
     navController: NavHostController,
-    departureAirport: String?,
-    arrivalAirport: String?,
-    airportCoordinatesList: List<AirportCoordinates>,
-    flightDetails: FlightEntity?
+    flightWithAirports: FlightWithAirports?,
+    airportCoordinatesList: List<AirportCoordinates>
 ) {
     VueLinkTheme {
         val defaultLocation = LatLng(40.416775, -3.703790)
@@ -75,8 +55,12 @@ fun AirportMapScreen(
             position = CameraPosition.fromLatLngZoom(defaultLocation, 5f)
         }
 
-        val departureCoordinates = airportCoordinatesList.find { it.iata == departureAirport }
-        val arrivalCoordinates = airportCoordinatesList.find { it.iata == arrivalAirport }
+        val departureCoordinates = airportCoordinatesList.find {
+            it.iata == (flightWithAirports?.departureAirport?.iata ?: "")
+        }
+        val arrivalCoordinates = airportCoordinatesList.find {
+            it.iata == (flightWithAirports?.arrivalAirport?.iata ?: "")
+        }
 
         val midpoint = if (departureCoordinates != null && arrivalCoordinates != null) {
             val midLat = (departureCoordinates.latitude + arrivalCoordinates.latitude) / 2
@@ -99,9 +83,6 @@ fun AirportMapScreen(
 
         val zoomLevel = calculateZoomLevel(distance)
         val scaffoldState = rememberBottomSheetScaffoldState()
-        val coroutineScope = rememberCoroutineScope()
-        var weather by remember { mutableStateOf<WeatherInfo?>(null) }
-        var showDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(midpoint, zoomLevel) {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(midpoint, zoomLevel)
@@ -115,37 +96,33 @@ fun AirportMapScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    flightDetails?.let { flight ->
-                        Text(
-                            text = stringResource(R.string.flight_details),
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                    flightWithAirports?.let {
                         Text(
                             text = stringResource(
                                 R.string.flight_number_format,
-                                flight.flightNumber ?: stringResource(R.string.unknown)
+                                it.flight.flightNumber ?: stringResource(R.string.unknown)
+                            ), style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.airline_format,
+                                it.flight.airlineName ?: stringResource(R.string.unknown)
                             ), style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = stringResource(
                                 R.string.flight_date_format,
-                                flight.flightDate ?: stringResource(R.string.unknown)
+                                it.flight.flightDate ?: stringResource(R.string.unknown)
                             ), style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = stringResource(
-                                R.string.departure_airport_format, flight.departureAirport
+                                R.string.departure_airport_format, it.departureAirport.name
                             ), style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
                             text = stringResource(
-                                R.string.arrival_airport_format, flight.arrivalAirport
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.airline_name_format,
-                                flight.airlineName ?: stringResource(R.string.unknown)
+                                R.string.arrival_airport_format, it.arrivalAirport.name
                             ), style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -160,29 +137,25 @@ fun AirportMapScreen(
                     modifier = Modifier.fillMaxSize(), cameraPositionState = cameraPositionState
                 ) {
                     departureCoordinates?.let { departure ->
-                        Marker(state = MarkerState(position = LatLng(departure.latitude, departure.longitude)),
-                            title = departure.iata,
-                            snippet = departure.iata,
-                            onClick = {
-                                coroutineScope.launch {
-                                    weather = fetchWeather(LatLng(departure.latitude, departure.longitude))
-                                    showDialog = true
-                                }
-                                false
-                            })
+                        WeatherMarkerInfo(
+                            coordinates = LatLng(departure.latitude, departure.longitude),
+                            title = stringResource(
+                                R.string.departure_airport_format,
+                                flightWithAirports?.departureAirport?.name ?: stringResource(R.string.unknown)
+                            ),
+                            scheduledTime = flightWithAirports?.departureAirport?.scheduled ?: ""
+                        )
                     }
 
                     arrivalCoordinates?.let { arrival ->
-                        Marker(state = MarkerState(position = LatLng(arrival.latitude, arrival.longitude)),
-                            title = arrival.iata,
-                            snippet = arrival.iata,
-                            onClick = {
-                                coroutineScope.launch {
-                                    weather = fetchWeather(LatLng(arrival.latitude, arrival.longitude))
-                                    showDialog = true
-                                }
-                                false
-                            })
+                        WeatherMarkerInfo(
+                            coordinates = LatLng(arrival.latitude, arrival.longitude),
+                            title = stringResource(
+                                R.string.arrival_airport_format,
+                                flightWithAirports?.arrivalAirport?.name ?: stringResource(R.string.unknown)
+                            ),
+                            scheduledTime = flightWithAirports?.arrivalAirport?.scheduled ?: ""
+                        )
                     }
 
                     if (departureCoordinates != null && arrivalCoordinates != null) {
@@ -193,35 +166,6 @@ fun AirportMapScreen(
                                 ), LatLng(arrivalCoordinates.latitude, arrivalCoordinates.longitude)
                             ), color = Color.Blue, width = 5f
                         )
-                    }
-
-                    if (showDialog && weather != null) {
-                        AlertDialog(onDismissRequest = { showDialog = false },
-                            title = { Text(stringResource(R.string.weather)) },
-                            text = {
-                                Column {
-                                    Text(
-                                        stringResource(
-                                            R.string.location_format,
-                                            weather?.locationName ?: stringResource(R.string.not_available)
-                                        ))
-                                    Text(
-                                        stringResource(
-                                            R.string.temperature_format,
-                                            weather?.temperature ?: stringResource(R.string.not_available)
-                                        ))
-                                    Text(
-                                        stringResource(
-                                            R.string.description_format,
-                                            weather?.description ?: stringResource(R.string.not_available)
-                                        ))
-                                }
-                            },
-                            confirmButton = {
-                                Button(onClick = { showDialog = false }) {
-                                    Text(stringResource(R.string.close))
-                                }
-                            })
                     }
                 }
                 TopAppBar(title = {}, colors = TopAppBarDefaults.topAppBarColors(
@@ -270,37 +214,5 @@ fun calculateZoomLevel(distance: Double): Float {
         distance < 5000 -> 4f
         distance < 10000 -> 3f
         else -> 1f
-    }
-}
-
-suspend fun fetchWeather(latLng: LatLng): WeatherInfo = withContext(Dispatchers.IO) {
-    val client = OkHttpClient()
-    val languageCode = Locale.getDefault().language
-    val url =
-        "https://api.openweathermap.org/data/2.5/weather?lat=${latLng.latitude}&lon=${latLng.longitude}&units=metric&lang=$languageCode&appid=${BuildConfig.OPENWEATHER_API_KEY}"
-
-    val request = Request.Builder().url(url).build()
-
-    try {
-        val response = client.newCall(request).execute()
-
-        if (!response.isSuccessful) {
-            println("Código de estado: ${response.code}")
-            throw Exception("Error en la llamada a la API: ${response.message}")
-        }
-
-        val responseBody = response.body?.string()
-
-        if (responseBody.isNullOrEmpty()) {
-            throw Exception("Respuesta vacía de la API")
-        }
-
-        println("Respuesta de la API: $responseBody")
-
-        Gson().fromJson(responseBody, WeatherResponse::class.java).toWeatherInfo()
-    } catch (e: Exception) {
-        println("Error en la llamada a la API: ${e.localizedMessage}")
-        e.printStackTrace()
-        throw e
     }
 }

@@ -56,6 +56,8 @@ import androidx.navigation.NavHostController
 import com.google.gson.Gson
 import es.uma.vuelink.BuildConfig
 import es.uma.vuelink.R
+import es.uma.vuelink.data.AirportDao
+import es.uma.vuelink.data.AirportEntity
 import es.uma.vuelink.data.FlightDao
 import es.uma.vuelink.data.FlightEntity
 import es.uma.vuelink.model.Flight
@@ -71,7 +73,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
+fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, airportDao: AirportDao) {
     var searchFlightNumber by remember { mutableStateOf("") }
     var searchDepartureAirport by remember { mutableStateOf("") }
     var searchArrivalAirport by remember { mutableStateOf("") }
@@ -119,9 +121,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                         searchFlightNumber.isBlank() || flight.flight.iata?.lowercase()
                             ?.contains(searchFlightNumber.lowercase()) == true
                     val matchesDepartureAirport =
-                        searchDepartureAirport.isBlank() || flight.departure.airport.lowercase() == searchDepartureAirport.lowercase()
+                        searchDepartureAirport.isBlank() || flight.departure.name.lowercase() == searchDepartureAirport.lowercase()
                     val matchesArrivalAirport =
-                        searchArrivalAirport.isBlank() || flight.arrival.airport.lowercase() == searchArrivalAirport.lowercase()
+                        searchArrivalAirport.isBlank() || flight.arrival.name.lowercase() == searchArrivalAirport.lowercase()
                     val matchesDate = selectedDate.isBlank() || flight.flightDate == selectedDate
                     matchesFlightNumber && matchesDepartureAirport && matchesArrivalAirport && matchesDate
                 }
@@ -263,7 +265,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                     )
                                     Text(
                                         text = stringResource(
-                                            R.string.departure_format, flight.departure.airport
+                                            R.string.departure_format, flight.departure.name
                                         ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -271,7 +273,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                     )
                                     Text(
                                         text = stringResource(
-                                            R.string.arrival_format, flight.arrival.airport
+                                            R.string.arrival_format, flight.arrival.name
                                         ),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -280,36 +282,82 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao) {
                                 }
                                 Button(
                                     onClick = {
-                                        val flightEntity = FlightEntity(
-                                            flightDate = flight.flightDate,
-                                            flightStatus = flight.flightStatus,
-                                            departureAirport = flight.departure.airport,
-                                            arrivalAirport = flight.arrival.airport,
-                                            departureIATA = flight.departure.iata,
-                                            arrivalIATA = flight.arrival.iata,
-                                            airlineName = flight.airline.name,
-                                            flightNumber = flight.flight.iata
-                                        )
-
                                         scope.launch(Dispatchers.IO) {
-                                            val existingFlight = flightDao.getFlightDetails(
-                                                flight.departure.iata, flight.arrival.iata
-                                            )
+                                            try {
+                                                val departureAirportId = airportDao.getAirportByIATA(flight.departure.iata)?.id
+                                                    ?: airportDao.insertAirport(
+                                                        AirportEntity(
+                                                            id = 0,
+                                                            name = flight.departure.name,
+                                                            timezone = flight.departure.timezone,
+                                                            iata = flight.departure.iata,
+                                                            icao = flight.departure.icao,
+                                                            terminal = flight.departure.terminal,
+                                                            gate = flight.departure.gate,
+                                                            delay = flight.departure.delay,
+                                                            scheduled = flight.departure.scheduled,
+                                                            estimated = flight.departure.estimated,
+                                                            actual = flight.departure.actual,
+                                                            estimatedRunway = flight.departure.estimatedRunway,
+                                                            actualRunway = flight.departure.actualRunway
+                                                        )
+                                                    ).toInt()
 
-                                            if (existingFlight == null) {
-                                                flightDao.insertFlight(flightEntity)
-                                                withContext(Dispatchers.Main) {
-                                                    Toast.makeText(
-                                                        context,
-                                                        context.getString(R.string.flight_saved_successfully),
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                val arrivalAirportId = airportDao.getAirportByIATA(flight.arrival.iata)?.id
+                                                    ?: airportDao.insertAirport(
+                                                        AirportEntity(
+                                                            id = 0,
+                                                            name = flight.arrival.name,
+                                                            timezone = flight.arrival.timezone,
+                                                            iata = flight.arrival.iata,
+                                                            icao = flight.arrival.icao,
+                                                            terminal = flight.arrival.terminal,
+                                                            gate = flight.arrival.gate,
+                                                            delay = flight.arrival.delay,
+                                                            scheduled = flight.arrival.scheduled,
+                                                            estimated = flight.arrival.estimated,
+                                                            actual = flight.arrival.actual,
+                                                            estimatedRunway = flight.arrival.estimatedRunway,
+                                                            actualRunway = flight.arrival.actualRunway
+                                                        )
+                                                    ).toInt()
+
+                                                val flightEntity = FlightEntity(
+                                                    flightDate = flight.flightDate,
+                                                    flightStatus = flight.flightStatus,
+                                                    departureAirportId = departureAirportId,
+                                                    arrivalAirportId = arrivalAirportId,
+                                                    airlineName = flight.airline.name,
+                                                    flightNumber = flight.flight.iata
+                                                )
+
+                                                val existingFlight = flightDao.getFlightWithAirportsByIata(
+                                                    flight.departure.iata, flight.arrival.iata
+                                                )
+
+                                                if (existingFlight == null) {
+                                                    flightDao.insertFlight(flightEntity)
+                                                    withContext(Dispatchers.Main) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            context.getString(R.string.flight_saved_successfully),
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                } else {
+                                                    withContext(Dispatchers.Main) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            context.getString(R.string.flight_already_saved),
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
                                                 }
-                                            } else {
+                                            } catch (e: Exception) {
                                                 withContext(Dispatchers.Main) {
                                                     Toast.makeText(
                                                         context,
-                                                        context.getString(R.string.flight_already_saved),
+                                                        context.getString(R.string.error_saving_flight),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }

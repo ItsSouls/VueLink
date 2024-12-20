@@ -8,11 +8,12 @@ data class WeatherResponse(
     val weather: List<WeatherDetails>
 ) {
     fun toWeatherInfo(): WeatherInfo {
-        val weatherDescription = weather.firstOrNull()?.description ?: "No disponible"
         return WeatherInfo(
             locationName = name,
             temperature = main.temp,
-            description = weatherDescription
+            tempMin = main.tempMin,
+            tempMax = main.tempMax,
+            weatherId = weather.firstOrNull()?.id ?: 900
         )
     }
 }
@@ -36,5 +37,7 @@ data class WeatherDetails(
 data class WeatherInfo(
     val locationName: String,
     val temperature: Double,
-    val description: String
+    val tempMin: Double,
+    val tempMax: Double,
+    val weatherId: Int
 )
