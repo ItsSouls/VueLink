@@ -124,9 +124,11 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
                         searchFlightNumber.isBlank() || flight.flight.iata?.lowercase()
                             ?.contains(searchFlightNumber.lowercase()) == true || flight.airline.name?.lowercase()?.contains(searchFlightNumber.lowercase()) == true
                     val matchesDepartureAirport =
-                        searchDepartureAirport.isBlank() || flight.departure.name.lowercase() == searchDepartureAirport.lowercase()
+                        searchDepartureAirport.isBlank() || flight.departure.name.lowercase()
+                            .contains(searchDepartureAirport.lowercase())
                     val matchesArrivalAirport =
-                        searchArrivalAirport.isBlank() || flight.arrival.name.lowercase() == searchArrivalAirport.lowercase()
+                        searchArrivalAirport.isBlank() || flight.departure.name.lowercase()
+                            .contains(searchArrivalAirport.lowercase())
                     val matchesDate = selectedDate.isBlank() || flight.flightDate == selectedDate
                     matchesFlightNumber && matchesDepartureAirport && matchesArrivalAirport && matchesDate
                 }
