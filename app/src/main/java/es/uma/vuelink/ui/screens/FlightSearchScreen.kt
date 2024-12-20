@@ -41,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,6 +88,8 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
 
     val datePickerState = rememberDatePickerState()
     val openDialog = remember { mutableStateOf(false) }
+
+
     if (openDialog.value) {
         DatePickerDialog(onDismissRequest = {
             openDialog.value = false
@@ -119,7 +122,7 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
                 flights = flightResponse.data.filter { flight ->
                     val matchesFlightNumber =
                         searchFlightNumber.isBlank() || flight.flight.iata?.lowercase()
-                            ?.contains(searchFlightNumber.lowercase()) == true
+                            ?.contains(searchFlightNumber.lowercase()) == true || flight.airline.name?.lowercase()?.contains(searchFlightNumber.lowercase()) == true
                     val matchesDepartureAirport =
                         searchDepartureAirport.isBlank() || flight.departure.name.lowercase() == searchDepartureAirport.lowercase()
                     val matchesArrivalAirport =
@@ -134,6 +137,10 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
                 loading = false
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        launchSearch()
     }
 
     val listContentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues()
