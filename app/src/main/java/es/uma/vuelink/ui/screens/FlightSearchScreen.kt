@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,13 +69,13 @@ import okhttp3.Request
 
 @Composable
 fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, airportDao: AirportDao) {
-    var searchFlightNumber by remember { mutableStateOf("") }
-    var searchDepartureAirport by remember { mutableStateOf("") }
-    var searchArrivalAirport by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf("") }
-    var flights by remember { mutableStateOf<List<Flight>>(emptyList()) }
-    var loading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var searchFlightNumber by rememberSaveable { mutableStateOf("") }
+    var searchDepartureAirport by rememberSaveable { mutableStateOf("") }
+    var searchArrivalAirport by rememberSaveable { mutableStateOf("") }
+    var selectedDate by rememberSaveable { mutableStateOf("") }
+    var flights by rememberSaveable { mutableStateOf<List<Flight>>(emptyList()) }
+    var loading by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -119,7 +120,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
     }
 
     LaunchedEffect(Unit) {
-        launchSearch()
+        if (flights.isEmpty() && !loading) {
+            launchSearch()
+        }
     }
 
     val listContentPadding = WindowInsets.safeDrawing.only(WindowInsetsSides.Top).asPaddingValues()
