@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -252,6 +253,9 @@ fun FlightSearchScreen(navController: NavHostController, flightDao: FlightDao, a
                 ) {
                     items(flights) { flight ->
                         Card(
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 6.dp
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp)

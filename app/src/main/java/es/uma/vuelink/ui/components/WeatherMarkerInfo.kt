@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,14 +40,14 @@ fun WeatherMarkerInfo(
     val coroutineScope = rememberCoroutineScope()
     var weather by remember { mutableStateOf<WeatherInfo?>(null) }
 
-    MarkerInfoWindowContent(state = remember { MarkerState(position = coordinates) }, onClick = {
+    LaunchedEffect(Unit) {
         coroutineScope.launch {
-            weather = fetchWeather(
-                LatLng(coordinates.latitude, coordinates.longitude), scheduledTime
-            )
+            weather =
+                fetchWeather(LatLng(coordinates.latitude, coordinates.longitude), scheduledTime)
         }
-        false
-    }) {
+    }
+
+    MarkerInfoWindowContent(state = remember { MarkerState(position = coordinates) }) {
         Box(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
