@@ -16,27 +16,22 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarDialog(
-    onDismiss: () -> Unit,
-    onDateSelected: (String) -> Unit
+    onDismiss: () -> Unit, onDateSelected: (String) -> Unit
 ) {
     val datePickerState = rememberDatePickerState()
 
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = {
-                val selectedDate = datePickerState.selectedDateMillis?.convertMillisToDate() ?: ""
-                onDateSelected(selectedDate)
-            }) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
+    DatePickerDialog(onDismissRequest = onDismiss, confirmButton = {
+        TextButton(onClick = {
+            val selectedDate = datePickerState.selectedDateMillis?.convertMillisToDate() ?: ""
+            onDateSelected(selectedDate)
+        }) {
+            Text(stringResource(R.string.ok))
         }
-    ) {
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text(stringResource(R.string.cancel))
+        }
+    }) {
         DatePicker(
             state = datePickerState
         )

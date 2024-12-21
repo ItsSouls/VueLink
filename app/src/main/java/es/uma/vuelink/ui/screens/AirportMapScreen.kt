@@ -2,9 +2,7 @@ package es.uma.vuelink.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -14,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
@@ -28,13 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import es.uma.vuelink.R
 import es.uma.vuelink.data.AirportCoordinates
 import es.uma.vuelink.data.FlightWithAirports
-import es.uma.vuelink.ui.components.WeatherMarkerInfo
+import es.uma.vuelink.ui.components.FlightBottomSheet
+import es.uma.vuelink.ui.components.FlightMap
 import es.uma.vuelink.ui.theme.VueLinkTheme
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -91,83 +87,19 @@ fun AirportMapScreen(
         BottomSheetScaffold(scaffoldState = scaffoldState,
             sheetPeekHeight = 128.dp,
             sheetContent = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    flightWithAirports?.let {
-                        Text(
-                            text = stringResource(
-                                R.string.flight_number_format,
-                                it.flight.flightNumber ?: stringResource(R.string.unknown)
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.airline_format,
-                                it.flight.airlineName ?: stringResource(R.string.unknown)
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.flight_date_format,
-                                it.flight.flightDate ?: stringResource(R.string.unknown)
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.departure_airport_format, it.departureAirport.name
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            text = stringResource(
-                                R.string.arrival_airport_format, it.arrivalAirport.name
-                            ), style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
+                FlightBottomSheet(flightWithAirports = flightWithAirports)
             }) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(), cameraPositionState = cameraPositionState
-                ) {
-                    departureCoordinates?.let { departure ->
-                        WeatherMarkerInfo(
-                            coordinates = LatLng(departure.latitude, departure.longitude),
-                            title = stringResource(
-                                R.string.departure_airport_format,
-                                flightWithAirports?.departureAirport?.name ?: stringResource(R.string.unknown)
-                            ),
-                            scheduledTime = flightWithAirports?.departureAirport?.scheduled ?: ""
-                        )
-                    }
-
-                    arrivalCoordinates?.let { arrival ->
-                        WeatherMarkerInfo(
-                            coordinates = LatLng(arrival.latitude, arrival.longitude),
-                            title = stringResource(
-                                R.string.arrival_airport_format,
-                                flightWithAirports?.arrivalAirport?.name ?: stringResource(R.string.unknown)
-                            ),
-                            scheduledTime = flightWithAirports?.arrivalAirport?.scheduled ?: ""
-                        )
-                    }
-
-                    if (departureCoordinates != null && arrivalCoordinates != null) {
-                        Polyline(
-                            points = listOf(
-                                LatLng(
-                                    departureCoordinates.latitude, departureCoordinates.longitude
-                                ), LatLng(arrivalCoordinates.latitude, arrivalCoordinates.longitude)
-                            ), color = Color.Blue, width = 5f
-                        )
-                    }
-                }
+                FlightMap(
+                    cameraPositionState = cameraPositionState,
+                    departureCoordinates = departureCoordinates,
+                    arrivalCoordinates = arrivalCoordinates,
+                    flightWithAirports = flightWithAirports
+                )
                 TopAppBar(title = {}, colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 ), navigationIcon = {
@@ -183,7 +115,6 @@ fun AirportMapScreen(
                         )
                     }
                 })
-
             }
         }
     }

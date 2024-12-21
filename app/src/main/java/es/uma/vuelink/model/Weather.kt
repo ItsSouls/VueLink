@@ -3,9 +3,7 @@ package es.uma.vuelink.model
 import com.google.gson.annotations.SerializedName
 
 data class WeatherResponse(
-    val name: String,
-    val main: WeatherMain,
-    val weather: List<WeatherDetails>
+    val name: String, val main: WeatherMain, val weather: List<WeatherDetails>
 ) {
     fun toWeatherInfo(): WeatherInfo {
         return WeatherInfo(
@@ -28,10 +26,7 @@ data class WeatherMain(
 )
 
 data class WeatherDetails(
-    val id: Int,
-    val main: String,
-    val description: String,
-    val icon: String
+    val id: Int, val main: String, val description: String, val icon: String
 )
 
 data class WeatherInfo(

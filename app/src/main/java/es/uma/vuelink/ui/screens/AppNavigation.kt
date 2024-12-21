@@ -40,9 +40,7 @@ fun AppNavigation(flightDao: FlightDao, airportDao: AirportDao) {
             }
 
             AirportMapScreen(
-                navController,
-                flightWithAirports.value,
-                airportCoordinatesList
+                navController, flightWithAirports.value, airportCoordinatesList
             )
         }
     }

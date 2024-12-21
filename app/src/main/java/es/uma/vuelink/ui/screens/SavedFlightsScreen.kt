@@ -71,7 +71,8 @@ fun SavedFlightsScreen(
             val flightsWithAirports = flightDao.getAllFlightsWithAirports()
             savedFlights.clear()
             savedFlights.addAll(flightsWithAirports)
-            hasCancelledFlights.intValue = flightsWithAirports.count { it.flight.flightStatus == "cancelled" }
+            hasCancelledFlights.intValue =
+                flightsWithAirports.count { it.flight.flightStatus == "cancelled" }
         }
 
         Scaffold(
@@ -101,6 +102,8 @@ fun SavedFlightsScreen(
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer
+                            ), elevation = CardDefaults.cardElevation(
+                                defaultElevation = 6.dp
                             ), modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
@@ -158,8 +161,7 @@ fun SavedFlightsScreen(
                                         .padding(horizontal = 16.dp)
                                 ) {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
+                                        modifier = Modifier.fillMaxSize()
                                     ) {
                                         Column(modifier = Modifier.padding(16.dp)) {
                                             Text(
@@ -210,8 +212,10 @@ fun SavedFlightsScreen(
                                                 horizontalArrangement = Arrangement.Center
                                             ) {
                                                 Button(onClick = {
-                                                    val departureIATA = flightWithAirports.departureAirport.iata
-                                                    val arrivalIATA = flightWithAirports.arrivalAirport.iata
+                                                    val departureIATA =
+                                                        flightWithAirports.departureAirport.iata
+                                                    val arrivalIATA =
+                                                        flightWithAirports.arrivalAirport.iata
                                                     navController.navigate("map/$departureIATA/$arrivalIATA")
                                                 }) {
                                                     Text(stringResource(R.string.show_map))
