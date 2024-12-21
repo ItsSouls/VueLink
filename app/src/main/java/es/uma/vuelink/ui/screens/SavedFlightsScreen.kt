@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -134,7 +135,27 @@ fun SavedFlightsScreen(
                     }
 
                     if (savedFlights.isEmpty()) {
-                        Text(text = stringResource(R.string.no_saved_flights))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AirplanemodeInactive, // Ícono específico
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                modifier = Modifier.size(200.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = stringResource(R.string.no_saved_flights),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     } else {
                         LazyColumn(
                             modifier = Modifier
